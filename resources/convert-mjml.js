@@ -3,8 +3,16 @@ const convertMJML = function() {
         if (!Array.isArray(items) || items.length === 0) {
             return '';
         }
-        return items.map(item => `• ${item}`).join('<br/>');
+        return items.map(item => `<mj-text mj-class="section-content">• ${item}</mj-text>`).join('<br/>');
     };
+
+    let summary = `
+        <mj-section padding="15px">
+            <mj-column border="1px solid #dddddd" background-color="#FCF0D2">
+                <mj-text mj-class="section-title">📌 Quick Summary</mj-text>
+                ${createBulletedList($input.first().json.summary)}
+            </mj-column>
+        </mj-section>`;
 
     let issues = [];
     for (const issue of $input.first().json.issues) {
@@ -42,17 +50,16 @@ const convertMJML = function() {
                     </mj-attributes>
                 </mj-head>
                 <mj-body>
-                    <mj-section background-color="#E9E9E9">
+                    <mj-section>
                         <mj-column>
-                            <mj-divider/>
-                            <mj-image src="https://lh3.googleusercontent.com/d/11VgJS7_uMNmlBLaiN9S68Nz-QWZIsLV4" width="500" height="150"/>
-                            <mj-divider  border-width="2px"/>
+                            <mj-image src="https://lh3.googleusercontent.com/d/1bveO7WYcxDDMgPJGCKniHpxKWUJkgDqf" width="500" height="150"/>
                         </mj-column>
                     </mj-section>
-                    <mj-wrapper border="1px solid #000000" padding="50px 30px">
+                    <mj-wrapper>
+                        ${summary}
                         <mj-section>
                             <mj-column>
-                                ${issues.join(`<mj-divider  border-width="2px"/>`)}
+                                ${issues.join(`<mj-divider  border-width="1px" border-color="#D3D3D3"/>`)}
                             </mj-column>
                         </mj-section>
                     </mj-wrapper>

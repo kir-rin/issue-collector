@@ -6,6 +6,8 @@ const userPrompt = `
     
     Sort the 'issues' array in descending order based on the 'issueSuitability.level', with 'high' being the highest, followed by 'medium', and then 'low'.
 
+    The summary should be a list of exactly three single sentences, where each sentence briefly highlights an issue suitable for today's contribution.
+
     type Level = "high" | "medium" | "low";
 
     interface LevelWithReasons {
@@ -25,9 +27,10 @@ const userPrompt = `
 
     interface IssueCollection {
         issues: Issue[];
+        summary: string[];
     }
 
-    Translate all user-facing string values (issueTitle, issueDescription, rootCause, and all items in reasons arrays) into the language specified by ${process.env.TRANSLATION_LANGUAGE}. Do not translate the YAML keys.
+    Translate all user-facing string values (issueTitle, issueDescription, rootCause, all items in reasons arrays, and all summary strings) into the language specified by ${process.env.TRANSLATION_LANGUAGE}. Do not translate the YAML keys.
 
     ------------
     Example output:
@@ -40,7 +43,7 @@ const userPrompt = `
       rootCause: |
       ...
       resolutionApproach:
-        - ".\"...\".."
+        - ".\\"...\\".."
       issueSuitability:
         level: "medium"
         reasons:
@@ -49,6 +52,10 @@ const userPrompt = `
         level: "high"
         reasons:
              - "..."
+    summary:
+      - "..."
+      - "..."
+      - "..."
 `
 
 const systemPrompt = `
@@ -75,6 +82,8 @@ const systemPrompt = `
     
     Sort the 'issues' array in descending order based on the 'issueSuitability.level', with 'high' being the highest, followed by 'medium', and then 'low'.
     
+    The summary should be a list of single sentences, where each sentence briefly highlights an issue suitable for today's contribution.
+
     type Level = "high" | "medium" | "low";
 
     interface LevelWithReasons {
@@ -94,6 +103,7 @@ const systemPrompt = `
 
     interface IssueCollection {
         issues: Issue[];
+        summary: string[];
     }
 
     ------------
@@ -107,7 +117,7 @@ const systemPrompt = `
       rootCause: |
       ...
       resolutionApproach:
-        - ".\"...\".."
+        - ".\\"...\\".."
       issueSuitability:
         level: "medium"
         reasons:
@@ -116,6 +126,8 @@ const systemPrompt = `
         level: "high"
         reasons:
             - "..."
+    summary:
+      - "..."
 `
 
 module.exports = {    
