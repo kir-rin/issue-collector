@@ -54,8 +54,6 @@ const userPrompt = `
              - "..."
     summary:
       - "..."
-      - "..."
-      - "..."
 `
 
 const systemPrompt = `

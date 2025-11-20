@@ -10,12 +10,12 @@ const convertMJML = function() {
         <mj-section padding="15px">
             <mj-column border="1px solid #dddddd" background-color="#FCF0D2">
                 <mj-text mj-class="section-title">📌 Quick Summary</mj-text>
-                ${createBulletedList($input.first().json.summary)}
+                ${createBulletedList($('parse YAML').first().json.summary)}
             </mj-column>
         </mj-section>`;
 
     let issues = [];
-    for (const issue of $input.first().json.issues) {
+    for (const issue of $('parse YAML').first().json.issues) {
         let issueInfo = `<mj-text mj-class="issue-title">${issue.issueTitle}</mj-text>
                         <mj-spacer/>
                         <mj-text mj-class="section-title">🧾 Issue Description</mj-text>
@@ -52,9 +52,10 @@ const convertMJML = function() {
                 <mj-body>
                     <mj-section>
                         <mj-column>
-                            <mj-image src="https://lh3.googleusercontent.com/d/1bveO7WYcxDDMgPJGCKniHpxKWUJkgDqf" width="500" height="150"/>
+                            <mj-image src="https://lh3.googleusercontent.com/d/1bveO7WYcxDDMgPJGCKniHpxKWUJkgDqf" width="1000" height="150"/>
                         </mj-column>
                     </mj-section>
+                    <mj-divider  border-width="1px" border-color="#D3D3D3"/> 
                     <mj-wrapper>
                         ${summary}
                         <mj-section>
@@ -65,7 +66,7 @@ const convertMJML = function() {
                     </mj-wrapper>
             </mj-body>
             </mjml>`
-    }
+    } 
 };
 
 module.exports = {
