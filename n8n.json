@@ -9,7 +9,7 @@
       "typeVersion": 2,
       "position": [
         112,
-        1120
+        1104
       ],
       "id": "99abf255-7f65-4772-8bf1-90cf499a0b65",
       "name": "Convert Markdown"
@@ -20,7 +20,7 @@
       "typeVersion": 1,
       "position": [
         -560,
-        1120
+        1104
       ],
       "id": "9d915cd3-9077-4308-b9f0-b6fc759c1441",
       "name": "When clicking ‘Execute workflow’"
@@ -33,20 +33,23 @@
       "typeVersion": 2,
       "position": [
         688,
-        1120
+        1104
       ],
       "id": "e1518ba9-818c-4a1f-877a-f773dad50ee1",
-      "name": "parse YAML"
+      "name": "parse YAML",
+      "executeOnce": false,
+      "retryOnFail": false,
+      "onError": "continueErrorOutput"
     },
     {
       "parameters": {
-        "jsCode": "let test = [];\n  const issues = $input.first().json.issues;\n  for (const issue of issues) {\n  let issueInfo = `<mj-text font-size=\"22px\">${issue.issueTitle}</mj-text>\n          <mj-spacer></mj-spacer>\n          <mj-text font-size=\"15px\" font-weight=\"bold\">🧾 이슈 내용</mj-text>\n          <mj-text font-size=\"14px\" line-height=\"1.6\">${issue.issueDescription}</mj-text>\n          <mj-text font-size=\"15px\" font-weight=\"bold\">🧩 원인</mj-text>\n          <mj-text font-size=\"14px\" line-height=\"1.6\">${issue.rootCause}</mj-text>`;\n  \n  let resolutionApproach = `<mj-text font-size=\"15px\" font-weight=\"bold\">🛠️ 해결 방향</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n  let approaches = [] // TODO : 동일한 로직 함수로 만들기\n  for (const x of issue.resolutionApproach) {\n      approaches.push(`• ${x}`);\n  }\n  resolutionApproach += approaches.join('<br/>');\n  resolutionApproach += '</mj-text>';\n  \n  let complianceWithStandards = `<mj-text font-size=\"15px\" font-weight=\"bold\">✅ 기준 적합성: ${issue.complianceWithStandards.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n  let standardReasons = [] \n  for (const reason of issue.complianceWithStandards.reasons) {\n      standardReasons.push(`• ${reason}`);\n  }\n  complianceWithStandards += standardReasons.join('<br/>');\n  complianceWithStandards += '</mj-text>';\n  \n  let technicalDifficulty = `<mj-text font-size=\"15px\" font-weight=\"bold\">🧗 기술적인 난이도: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n  let difficultyReason  = []\n  for (const reason of issue.technicalDifficulty.reasons) {\n      difficultyReason.push(`• ${reason}`);\n  } \n  technicalDifficulty += difficultyReason.join('<br/>');\n  technicalDifficulty += '</mj-text>';\n\n  let issuelink = `<mj-text font-size=\"15px\" font-weight=\"bold\"><p>👉 이슈 보러가기 <a href=\"${issue.issueURL}\">(링크)</a></p></mj-text>`;\n  test.push(issueInfo + resolutionApproach + complianceWithStandards + technicalDifficulty + issuelink)\n  }\n\n  return {\n      issueHTML: `\n          <mjml>\n          <mj-body>\n              <mj-section background-color=\"#E9E9E9\">\n          <mj-column>\n                      <mj-divider/>\n              <mj-image src=\"https://lh3.googleusercontent.com/d/11VgJS7_uMNmlBLaiN9S68Nz-QWZIsLV4\" width=\"500\" height=\"150\"/>\n              <mj-divider  border-width=\"2px\"/>\n          </mj-column>\n          </mj-section>\n          \n              <mj-wrapper border=\"1px solid #000000\" padding=\"50px 30px\">\n              <mj-section>\n                  <mj-column>\n                  ${test.join(`<mj-divider border-width=\"1px\" border-color=\"lightgrey\"></mj-divider>`)}\n                  </mj-column>\n              </mj-section>\n              </mj-wrapper>\n          </mj-body>\n          </mjml>`\n  }"
+        "jsCode": "const createBulletedList = (items) => {\n      if (!Array.isArray(items) || items.length === 0) {\n          return '';\n      }\n      return items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n  };\n\n  let summary = `\n      <mj-section padding=\"15px\">\n          <mj-column border=\"1px solid #dddddd\" background-color=\"#FCF0D2\">\n              <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n              ${createBulletedList($('parse YAML').first().json.summary)}\n          </mj-column>\n      </mj-section>`;\n\n  let issues = [];\n  const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const difficultyOrder = { 'low': 0, 'medium': 1, 'high': 2 };\n\n  const sortedIssues = $('parse YAML').first().json.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.issueSuitability.level];\n      const suitabilityB = suitabilityOrder[b.issueSuitability.level];\n      if (suitabilityA !== suitabilityB) {\n          return suitabilityA - suitabilityB;\n      }\n      const difficultyA = difficultyOrder[a.technicalDifficulty.level];\n      const difficultyB = difficultyOrder[b.technicalDifficulty.level];\n      return difficultyA - difficultyB;\n  }).slice(0, 5);\n\n  for (const issue of sortedIssues) {\n      let issueInfo = `<mj-text mj-class=\"issue-title\">${issue.issueTitle}</mj-text>\n                      <mj-spacer/>\n                      <mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>\n                      <mj-text mj-class=\"section-content\">${issue.issueDescription}</mj-text>\n                      <mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>\n                      <mj-text mj-class=\"section-content\">${issue.rootCause}</mj-text>`;\n      let resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n      resolutionApproach += createBulletedList(issue.resolutionApproach);\n      resolutionApproach += '</mj-text>';\n      \n      let issueSuitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.issueSuitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n      issueSuitability += createBulletedList(issue.issueSuitability.reasons);\n      issueSuitability += '</mj-text>';\n      \n      let technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n      technicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n      technicalDifficulty += '</mj-text>';\n\n      let issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to Issue <a href=\"${issue.issueURL}\">(Link)</a></p></mj-text>`;\n\n      issues.push(issueInfo + resolutionApproach + issueSuitability + technicalDifficulty + issuelink)\n  }\n\n  return {\n      issueHTML: `\n          <mjml>\n\t\t\t<mj-head>\n                  <mj-attributes>\n                      <mj-class name=\"issue-title\" font-size=\"22px\" />\n                      <mj-class name=\"section-title\" font-size=\"15px\" font-weight=\"bold\"/>\n                      <mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n                  </mj-attributes>\n              </mj-head>\n              <mj-body>\n                  <mj-section>\n                      <mj-column>\n                          <mj-image src=\"https://lh3.googleusercontent.com/d/1bveO7WYcxDDMgPJGCKniHpxKWUJkgDqf\" width=\"1000\" height=\"150\"/>\n                      </mj-column>\n                  </mj-section>\n                  <mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n                  <mj-wrapper>\n                      ${summary}\n                      <mj-section>\n                          <mj-column>\n                              ${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n                          </mj-column>\n                      </mj-section>\n                  </mj-wrapper>\n          </mj-body>\n          </mjml>`\n  }"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         912,
-        1120
+        1104
       ],
       "id": "09339ec8-6306-4e73-b945-ac7f98840e26",
       "name": "convert MJML"
@@ -59,7 +62,7 @@
       "typeVersion": 2,
       "position": [
         1136,
-        1120
+        1104
       ],
       "id": "78414a49-3a06-4416-b00e-09695a9b4977",
       "name": "convert MJML to HTML"
@@ -72,8 +75,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        256,
-        1360
+        344,
+        1328
       ],
       "id": "5166ae3b-ef00-4bb5-8e9a-cb2608d6588d",
       "name": "OpenRouter Chat Model",
@@ -92,8 +95,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        368,
-        1360
+        472,
+        1328
       ],
       "id": "15339e92-4499-477d-97f8-8e146ef207a1",
       "name": "OpenRouter Chat Fallback Model",
@@ -112,7 +115,7 @@
       "typeVersion": 2,
       "position": [
         -336,
-        1120
+        1104
       ],
       "id": "b0c87ce1-9c4b-4839-888a-334220da5734",
       "name": "Load Repo Info"
@@ -128,7 +131,7 @@
       "typeVersion": 1.1,
       "position": [
         -112,
-        1120
+        1104
       ],
       "id": "04c3ca7a-fa69-45d7-9cd4-6e28e85842e1",
       "name": "Get Issue From Github",
@@ -142,10 +145,10 @@
     {
       "parameters": {
         "promptType": "=define",
-        "text": "=\n    {{ $json.markdown_list }}\n\n    Generate a YAML object that matches the TypeScript type $IssueCollection below:\n    (You MUST wrap every YAML list item in double quotes. If the string contains a double quote (\"), escape it using a backslash (\").)\n    \n    Sort the 'issues' array in descending order based on the 'issueSuitability.level', with 'high' being the highest, followed by 'medium', and then 'low'.\n\n    The summary should be a list of exactly three single sentences, where each sentence briefly highlights an issue suitable for today's contribution.\n\n    type Level = \"high\" | \"medium\" | \"low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueTitle: string;\n        issueURL: string;\n        issueDescription: string;\n        rootCause: string;\n        resolutionApproach: string[];\n        issueSuitability: LevelWithReasons;\n        technicalDifficulty: LevelWithReasons;\n    }\n\n    interface IssueCollection {\n        issues: Issue[];\n        summary: string[];\n    }\n\n    Translate all user-facing string values (issueTitle, issueDescription, rootCause, all items in reasons arrays, and all summary strings) into the language specified by ko-KR. Do not translate the YAML keys.\n\n    ------------\n    Example output:\n    issues:\n    - issueTitle: |\n      ...\n      issueURL: \"https://example.com\"\n      issueDescription: |\n      ...\n      rootCause: |\n      ...\n      resolutionApproach:\n        - \".\\\"...\\\"..\"\n      issueSuitability:\n        level: \"medium\"\n        reasons:\n            - \"...\"\n      technicalDifficulty:\n        level: \"high\"\n        reasons:\n             - \"...\"\n    summary:\n      - \"...\"\n",
+        "text": "=\n    {{ $json.markdown_list }}\n\n    Generate a YAML object from the markdown list above.\n",
         "needsFallback": true,
         "options": {
-          "systemMessage": "=\n    너는 오픈소스에 기여하려는 오픈소스 기여 경험이 많은 10년차 개발자야.\n\n    아래 이슈들을 검색해서 내용을 읽어보고 밑의 기여하기 좋은 기준에 맞게 분류해줘.\n    이슈들이 있는 url은 https://github.com/{{ $('Load Repo Info').first().json.repo}}/issues 이야.\n    이슈를 분류할땐 이슈 내용, 원인, 해결방향과 기준에 얼마나 잘 맞는지(상,중,하), 기술적인 난이도 (상,중,하) 로 평가해줘.\n\n    [기여하기 좋은 이슈 기준]\n    이슈의 내용이 상세하게 잘 작성되어 있는 경우 \n    이슈의 내용 안에 버그나 에러의 로그와 재현할 수 있는 방법이 명시되어 있는 경우 \n    이슈 내에 의심되는 소스코드의 위치가 제보자나 메인테이너에 의해 특정된 경우 \n    메인테이너가 이슈의 내용을 확인하고 문제가 맞아서 방향을 정해주거나 기여 해달라고 한 경우 \n    메인테이너가 직접 작성한 이슈\n    이슈의 라벨에 good first issue 가 달려있고, blocked 나 wait-for-triage가 없는 이슈 \n    이슈를 해결하는 PR이 아직 생성되지 않은 이슈 (누군가가 PR을 만들겠다고만 말하고 PR이 아직 생성 안된건 상관 없음)\n\n    위의 기준에 잘 맞는 이슈일수록 상세하게 설명하고 강조해줘.\n    위의 기준에 안맞는 이슈는 요약할 필요 없어.\n\n    Generate a YAML object that matches the TypeScript type $IssueCollection below:\n    (You MUST wrap every YAML list item in double quotes. This rule is STRICT and cannot be violated)\n\n    type Level = \"high\" | \"medium\" | \"low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueTitle: string;\n        issueURL: string;\n        issueDescription: string;\n        rootCause: string;\n        resolutionApproach: string[];\n        complianceWithStandards: LevelWithReasons;\n        technicalDifficulty: LevelWithReasons;\n    }\n\n    interface IssueCollection {\n        issues: Issue[];\n    }\n\n    ------------\n    Example output:\n    issues:\n    - issueTitle: |\n        ...\n        issueURL: \"https://example.com\"\n        issueDescription: |\n        ...\n        rootCause: |\n        ...\n        resolutionApproach:\n        - \"...\"\n        complianceWithStandards:\n        level: \"medium\"\n        reasons:\n            - \"...\"\n        technicalDifficulty:\n        level: \"high\"\n        reasons:\n            - \"...\"\n",
+          "systemMessage": "=\n    You are a 10-year experienced developer with extensive open-source contribution experience, looking to contribute to open source.\n\n    Search the issues below, read their content, and classify them according to the criteria for good contribution opportunities below.\n    The URL for the issues is https://github.com/{{ $('Load Repo Info').first().json.repo}}/issues.\n    When classifying issues, evaluate them based on issue content, root cause, resolution approach, how well they meet the criteria (high, medium, low), and technical difficulty (high, medium, low).\n\n    [Criteria for good contribution opportunities]\n    Issues with detailed and well-written content.\n    Issues where bug or error logs and reproduction steps are clearly specified within the content.\n    Issues where the location of suspicious source code has been identified by the reporter or maintainer.\n    Issues where the maintainer has confirmed the problem, set a direction, or requested contributions.\n    Issues directly created by the maintainer.\n    Issues with a \"good first issue\" label and no \"blocked\" or \"wait-for-triage\" labels.\n    Issues for which a PR has not yet been created (it's okay if someone has only stated they will create a PR).\n\n    For issues that meet the above criteria well, explain and emphasize them in detail.\n    There is no need to summarize issues that do not meet the above criteria.\n    \n    Generate a YAML object that matches the TypeScript type $IssueCollection below:\n\n\t\tRules:\n    - Wrap every YAML list item in double quotes. Escape only double quotes (\") inside the string with a backslash (\").\n    - The summary should be a list of exactly three single sentences, where each sentence briefly highlights an issue suitable for today's contribution.\n    - From the issues that meet the criteria, provide a minimum of 3 and a maximum of 5 of the most suitable ones.\n    - Translate all user-facing string values (issueTitle, issueDescription, rootCause, all items in reasons arrays, and all summary strings) into the language specified by ko-KR. Do not translate the YAML keys.\n\n    type Level = \"high\" | \"medium\" | \"low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueTitle: string;\n        issueURL: string;\n        issueDescription: string;\n        rootCause: string;\n        resolutionApproach: string[];\n        issueSuitability: LevelWithReasons;\n        technicalDifficulty: LevelWithReasons;\n    }\n\n    interface IssueCollection {\n        issues: Issue[];\n        summary: string[];\n    }\n\n    ------------\n    Example output:\n    issues:\n    - issueTitle: |\n      ...\n      issueURL: \"https://example.com\"\n      issueDescription: |\n      ...\n      rootCause: |\n      ...\n      resolutionApproach:\n        - \"It's an \\\"approach1\\\"\"\n      issueSuitability:\n        level: \"medium\"\n        reasons:\n            - \"...\"\n      technicalDifficulty:\n        level: \"high\"\n        reasons:\n             - \"...\"\n    summary:\n      - \"...\"\n",
           "batching": {
             "delayBetweenBatches": 2
           }
@@ -155,7 +158,7 @@
       "typeVersion": 3,
       "position": [
         336,
-        1120
+        1104
       ],
       "id": "9ca0496b-9938-466b-b159-164f72a2bc24",
       "name": "Process with AI",
@@ -165,15 +168,15 @@
       "parameters": {
         "fromEmail": "",
         "toEmail": "",
-        "subject": "",
+        "subject": "Issue Report",
         "html": "={{ $json.htmlOutput.html }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        1344,
-        1120
+        1360,
+        1104
       ],
       "id": "4fbe9184-c329-4691-9fcc-3061aaecdf57",
       "name": "Send email",
@@ -215,6 +218,13 @@
         [
           {
             "node": "convert MJML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process with AI",
             "type": "main",
             "index": 0
           }
@@ -303,7 +313,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f01da867-548e-46f5-adab-ae44ca501311",
+  "versionId": "3cff76c1-b680-40f3-b481-a0d579280652",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c4eb748d1201f6efcf3fb4abe55ad9f6c4623960d681ba4f9bd76fc5b7ea8d40"
