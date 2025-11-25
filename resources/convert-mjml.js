@@ -5,58 +5,46 @@ const convertMJML = function() {
         }
         return items.map(item => `<mj-text mj-class="section-content">• ${item}</mj-text>`).join('<br/>');
     };
-
+  
     let summary = `
         <mj-section padding="15px">
             <mj-column border="1px solid #dddddd" background-color="#FCF0D2">
                 <mj-text mj-class="section-title">📌 Quick Summary</mj-text>
-                ${createBulletedList($('parse YAML').first().json.summary)}
+                ${createBulletedList($('Merge').all().map(item => item.json.output.summary))}
             </mj-column>
         </mj-section>`;
-
+  
     let issues = [];
-    const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };
-    const difficultyOrder = { 'low': 0, 'medium': 1, 'high': 2 };
-
-    const sortedIssues = $('parse YAML').first().json.issues.sort((a, b) => {
-        const suitabilityA = suitabilityOrder[a.issueSuitability.level];
-        const suitabilityB = suitabilityOrder[b.issueSuitability.level];
-        if (suitabilityA !== suitabilityB) {
-            return suitabilityA - suitabilityB;
-        }
-        const difficultyA = difficultyOrder[a.technicalDifficulty.level];
-        const difficultyB = difficultyOrder[b.technicalDifficulty.level];
-        return difficultyA - difficultyB;
-    }).slice(0, 5);
-
-    for (const issue of sortedIssues) {
-        let issueInfo = `<mj-text mj-class="issue-title">${issue.issueTitle}</mj-text>
+  
+    for (const issue of $('Merge').all()) {
+        let issueInfo = `<mj-text mj-class="issue-title">${issue.json.issueTitle}</mj-text>
                         <mj-spacer/>
                         <mj-text mj-class="section-title">🧾 Issue Description</mj-text>
-                        <mj-text mj-class="section-content">${issue.issueDescription}</mj-text>
+                        <mj-text mj-class="section-content">${issue.json.issueDescription}</mj-text>
                         <mj-text mj-class="section-title">🧩 Root Cause</mj-text>
-                        <mj-text mj-class="section-content">${issue.rootCause}</mj-text>`;
+                        <mj-text mj-class="section-content">${issue.json.output.rootCause}</mj-text>`;
         let resolutionApproach = `<mj-text mj-class="section-title">🛠️ Resolution Approach</mj-text><mj-text font-size="14px" line-height="1.6">`;
-        resolutionApproach += createBulletedList(issue.resolutionApproach);
+        resolutionApproach += createBulletedList(issue.json.output.resolutionApproach);
         resolutionApproach += '</mj-text>';
         
-        let issueSuitability = `<mj-text mj-class="section-title">✅ Issue Suitability: ${issue.issueSuitability.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
-        issueSuitability += createBulletedList(issue.issueSuitability.reasons);
+        let issueSuitability = `<mj-text mj-class="section-title">✅ Issue Suitability: ${issue.json.issueSuitability.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
+        issueSuitability += createBulletedList(issue.json.issueSuitability.reasons);
         issueSuitability += '</mj-text>';
         
-        let technicalDifficulty = `<mj-text mj-class="section-title">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
-        technicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);
+        let technicalDifficulty = `<mj-text mj-class="section-title">🧗 Technical Difficulty: ${issue.json.output.technicalDifficulty.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
+        technicalDifficulty += createBulletedList(issue.json.output.technicalDifficulty.reasons);
         technicalDifficulty += '</mj-text>';
-
-        let issuelink = `<mj-text mj-class="section-title"><p>👉 Go to Issue <a href="${issue.issueURL}">(Link)</a></p></mj-text>`;
-
-        issues.push(issueInfo + resolutionApproach + issueSuitability + technicalDifficulty + issuelink)
+  
+        let issuelink = `<mj-text mj-class="section-title"><p>👉 Go to Issue <a href="${issue.json.issueURL}">(Link)</a></p></mj-text>`;
+        let deepwikiLink = `<mj-text mj-class="section-title"><p>🌀 Go to Deepwiki search result <a href="${issue.json.output.deepwikiLink}">(Link)</a></p></mj-text>`;
+  
+        issues.push(issueInfo + resolutionApproach + issueSuitability + technicalDifficulty + issuelink + deepwikiLink)
     }
-
+  
     return {
         issueHTML: `
             <mjml>
-				<mj-head>
+              <mj-head>
                     <mj-attributes>
                         <mj-class name="issue-title" font-size="22px" />
                         <mj-class name="section-title" font-size="15px" font-weight="bold"/>
@@ -80,8 +68,8 @@ const convertMJML = function() {
                     </mj-wrapper>
             </mj-body>
             </mjml>`
-    } 
-};
+    }   
+}
 
 module.exports = {
     "jsCode": convertMJML.toString()

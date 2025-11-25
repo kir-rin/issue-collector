@@ -2,10 +2,9 @@
   "name": "n8n-issue-collector",
   "version": "1.0.0",
   "license": "ISC",
-  "type": "commonjs", 
+  "type": "commonjs",
   "dependencies": {
-    "n8n": "^1.118.2",
-    "yaml": "^2.8.1",
-    "mjml": "^4.16.1"
+    "mjml": "^4.16.1",
+    "n8n": "^1.118.2"
   }
 }
