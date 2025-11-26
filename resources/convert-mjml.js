@@ -5,10 +5,17 @@ const convertMJML = function() {
         }
         return items.map(item => `<mj-text mj-class="section-content">• ${item}</mj-text>`).join('<br/>');
     };
-  
+    let latestRelease = `
+        <mj-section padding="15px">
+            <mj-column border="3px solid #52af0f">
+                <mj-text mj-class="section-title">🚀 Latest Release (${$('IssueRank Agent').first().json.output.latestRelease.name})</mj-text>
+                <mj-text mj-class="section-content">${$('IssueRank Agent').first().json.output.latestRelease.description}</mj-text>
+            </mj-column>
+        </mj-section>`;
+
     let summary = `
         <mj-section padding="15px">
-            <mj-column border="1px solid #dddddd" background-color="#FCF0D2">
+            <mj-column border="3px solid #193404">
                 <mj-text mj-class="section-title">📌 Quick Summary</mj-text>
                 ${createBulletedList($('Merge').all().map(item => item.json.output.summary))}
             </mj-column>
@@ -64,6 +71,7 @@ const convertMJML = function() {
                     </mj-section>
                     <mj-divider  border-width="1px" border-color="#D3D3D3"/> 
                     <mj-wrapper>
+                        ${latestRelease}
                         ${summary}
                         <mj-section>
                             <mj-column>

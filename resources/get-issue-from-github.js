@@ -1,6 +1,13 @@
 const getIssueFromGithubQuery = `
     query {
         repository(owner: "{{ $json.owner }}", name: "{{ $json.name }}") {
+            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
+                nodes {
+                    name
+                    description
+                    createdAt
+                }
+            }
             issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {
                 nodes {
                     title

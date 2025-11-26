@@ -1,6 +1,18 @@
 const inputSchema = `{
   "type": "object",
   "properties": {
+    "latestRelease": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "description"]
+    },
     "issues": {
       "type": "array",
       "items": {
@@ -37,7 +49,7 @@ const inputSchema = `{
       }
     }
   },
-  "required": ["issues"]
+  "required": ["latestRelease", "issues"]
 }`;
 
 module.exports = {
