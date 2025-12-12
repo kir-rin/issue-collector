@@ -69,7 +69,7 @@ function buildWorkflow() {
   console.log('🔨 n8n workflow 빌드를 시작합니다...\n');
 
   // 1. workflow 파일 읽기 (인자로 받거나 기본값 사용)
-  const inputFile = process.argv[2] || '.github/workflows/n8n.json';
+  const inputFile = process.argv[2] || 'n8n.json';
   const workflowPath = path.join(__dirname, '..', inputFile);
   
   if (!fs.existsSync(workflowPath)) {

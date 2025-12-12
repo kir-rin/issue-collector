@@ -32,43 +32,6 @@ jobs:
           REPO: ${{ vars.REPO }}
           EMAIL: ${{ vars.EMAIL }}
         run: |
-          cat << 'EOF' > cred.json
-          [
-             {
-                "id": "openRouterApi",
-                "name": "OpenRouter account",
-                "type": "openRouterApi",
-                "data": {
-                    "apiKey": "${{ secrets.OPENROUTER_API_KEY }}"
-                }
-              },
-              {
-                "id": "httpHeaderAuth",
-                "name": "Header Auth account",
-                "type": "httpHeaderAuth",
-                "data": {
-                    "name": "Authorization",
-                    "value": "Bearer ${{ secrets.N8N_GITHUB_ACCESS_TOKEN }}"
-                }
-              },
-              {
-                 "id": "smtp",
-                 "name": "SMTP account",
-                 "type": "smtp",
-                 "data": {
-                    "user": "${{ vars.EMAIL }}",
-                    "password": "${{ secrets.GOOGLE_APP_PASSWORD }}",
-                    "host": "smtp.gmail.com",
-                    "port": 465,
-                    "secure": true,
-                    "disableStartTls": false,
-                    "hostName": ""
-                  }
-              }
-          ] 
-          EOF
-          npx n8n import:credentials --input="cred.json"
-          node scripts/build-workflow.js n8n.json
-          npx n8n import:workflow --input="./dist/workflow.json"
+          ./scripts/import-workflow.sh
           WORKFLOW_ID=$(sqlite3 ~/.n8n/database.sqlite "SELECT id FROM workflow_entity ORDER BY createdAt DESC LIMIT 1;")
           npx n8n execute workflow --id $WORKFLOW_ID
