@@ -2,10 +2,10 @@ const userPrompt = `
     Generate a YAML object from the markdown list of issues and the release notes below.
     
     [ISSUES]
-    {{ $json.data.repository.issues.toJsonString() }}
+		{{ $('Get Issue From Github').item.json.data.repository.issues.toJsonString()  }}
 
     [RELEASE]
-    {{ $json.data.repository.releases.nodes[0].toJsonString() }}
+		{{ $('Get Issue From Github').item.json.data.repository.releases.nodes[0].toJsonString()   }}
 `
 
 const systemPrompt = `
@@ -15,7 +15,7 @@ const systemPrompt = `
     The summary should be a minimum of one and a maximum of three lines, highlighting the most important updates for potential contributors.
 
     Next, search the issues below, read their content, and classify them according to the criteria for good contribution opportunities.
-    The URL for the issues is https://github.com/{{ $('Load Repo Info').first().json.repo}}/issues.
+    The URL for the issues is https://github.com/{{ $('Load Repo Info').item.json.owner }}/{{ $('Load Repo Info').item.json.name }}/issues.
     When classifying issues, evaluate them based on issue title, issue content, and how well they meet the criteria (high, medium, low).
 
     [Criteria for good contribution opportunities]

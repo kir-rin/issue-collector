@@ -28,8 +28,6 @@ jobs:
         env:
           N8N_LOG_LEVEL: "error"
           NODE_FUNCTION_ALLOW_EXTERNAL: "mjml"
-          OPENROUTER_MODEL: "kwaipilot/kat-coder-pro:free"
-          OPENROUTER_FALLBACK_MODEL: "qwen/qwen3-coder:free"
           TRANSLATION_LANGUAGE: ${{ vars.TRANSLATION_LANGUAGE || 'en-US' }}
           REPO: ${{ vars.REPO }}
           EMAIL: ${{ vars.EMAIL }}
@@ -50,7 +48,7 @@ jobs:
                 "type": "httpHeaderAuth",
                 "data": {
                     "name": "Authorization",
-                    "value": "Bearer ${{ secrets.N8N_GITHUB_API_KEY }}"
+                    "value": "Bearer ${{ secrets.N8N_GITHUB_ACCESS_TOKEN }}"
                 }
               },
               {

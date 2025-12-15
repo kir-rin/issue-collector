@@ -1,43 +1,29 @@
 {
-  "name": "My workflow",
+  "name": "Curate Contributor-Friendly Issues with AI and Send GitHub Newsletter via Email copy",
   "nodes": [
     {
       "parameters": {},
+      "id": "f0427aa1-48aa-487a-98ef-f42b5ea6bffe",
+      "name": "When clicking ‘Execute workflow’",
       "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
       "position": [
-        -672,
-        624
+        320,
+        832
       ],
-      "id": "9d915cd3-9077-4308-b9f0-b6fc759c1441",
-      "name": "When clicking ‘Execute workflow’"
+      "typeVersion": 1
     },
     {
       "parameters": {
-        "jsCode": "const mjml2html = require('mjml');\n  return {\n      htmlOutput: mjml2html($input.first().json.issueHTML)\n  }"
+        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
       },
+      "id": "ac914444-a804-4da0-b479-6282a656ec03",
+      "name": "Load Repo Info",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
       "position": [
-        2640,
-        624
+        544,
+        832
       ],
-      "id": "78414a49-3a06-4416-b00e-09695a9b4977",
-      "name": "convert MJML to HTML",
-      "executeOnce": false
-    },
-    {
-      "parameters": {
-        "jsCode": ""
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        -448,
-        624
-      ],
-      "id": "b0c87ce1-9c4b-4839-888a-334220da5734",
-      "name": "Load Repo Info"
+      "typeVersion": 2
     },
     {
       "parameters": {
@@ -46,14 +32,15 @@
         "query": "=\n    query {\n        repository(owner: \"{{ $json.owner }}\", name: \"{{ $json.name }}\") {\n            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    name\n                    description\n                    createdAt\n                }\n            }\n            issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    title\n                    url\n                    body\n                    author {\n                        ... on User {\n                            login\n                        }\n                    }\n                    issueType {\n                        name\n                    }\n                    labels(first: 5) {\n                        edges {\n                            node {\n                                name\n                            }\n                        }\n                    }\n                    comments(first: 10) {\n                        nodes {\n                            body\n                        }\n                    }\n                }\n            }\n        }\n    }\n",
         "variables": "="
       },
-      "type": "n8n-nodes-base.graphql",
-      "typeVersion": 1.1,
-      "position": [
-        -224,
-        624
-      ],
-      "id": "04c3ca7a-fa69-45d7-9cd4-6e28e85842e1",
+      "id": "a24e69e7-f24b-425f-8623-db39c8e81b3f",
       "name": "Get Issue From Github",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        768,
+        832
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
       "credentials": {
         "httpHeaderAuth": {
           "id": "httpHeaderAuth",
@@ -66,29 +53,29 @@
         "fieldToSplitOut": "issues",
         "options": {}
       },
+      "id": "f0f10446-2ece-4015-8928-7ce70fbdab02",
+      "name": "Split Out",
       "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
       "position": [
-        848,
-        800
+        2288,
+        1104
       ],
-      "id": "789e9515-c002-4b86-a0c6-d009e2ec4ef9",
-      "name": "Split Out"
+      "typeVersion": 1
     },
     {
       "parameters": {
         "jsCode": "const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const sortedIssues = $input.first().json.output.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.issueSuitability.level];\n      const suitabilityB = suitabilityOrder[b.issueSuitability.level];\n      return suitabilityA - suitabilityB\n  }).slice(0, 3);\n\n  return {\n      \"issues\" : sortedIssues\n  }"
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        624,
-        624
-      ],
-      "id": "e1518ba9-818c-4a1f-877a-f773dad50ee1",
+      "id": "d9fead98-632b-4ede-b96f-d33969ae5a47",
       "name": "get Top Fit Issues",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        2064,
+        928
+      ],
       "executeOnce": false,
-      "retryOnFail": false
+      "retryOnFail": false,
+      "typeVersion": 2
     },
     {
       "parameters": {
@@ -104,70 +91,50 @@
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        1920,
-        800
-      ],
-      "id": "3806efab-6ad2-4372-959d-27571ae3b39a",
+      "id": "b4c4e831-93bb-46e4-b1c8-c3284135e11b",
       "name": "Merge",
-      "executeOnce": false
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        3328,
+        1104
+      ],
+      "executeOnce": false,
+      "typeVersion": 3.2
     },
     {
       "parameters": {
         "promptType": "=define",
-        "text": "=\n    Generate a YAML object from the markdown list of issues and the release notes below.\n    \n    [ISSUES]\n    {{ $json.data.repository.issues.toJsonString() }}\n\n    [RELEASE]\n    {{ $json.data.repository.releases.nodes[0].toJsonString() }}\n",
+        "text": "=\n    Generate a YAML object from the markdown list of issues and the release notes below.\n    \n    [ISSUES]\n\t\t{{ $('Get Issue From Github').item.json.data.repository.issues.toJsonString()  }}\n\n    [RELEASE]\n\t\t{{ $('Get Issue From Github').item.json.data.repository.releases.nodes[0].toJsonString()   }}\n",
         "hasOutputParser": true,
         "needsFallback": true,
         "options": {
-          "systemMessage": "=\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience, looking to contribute to open source.\n\n    First, summarize the key changes from the latest release provided below.\n    The summary should be a minimum of one and a maximum of three lines, highlighting the most important updates for potential contributors.\n\n    Next, search the issues below, read their content, and classify them according to the criteria for good contribution opportunities.\n    The URL for the issues is https://github.com/{{ $('Load Repo Info').first().json.repo}}/issues.\n    When classifying issues, evaluate them based on issue title, issue content, and how well they meet the criteria (high, medium, low).\n\n    [Criteria for good contribution opportunities]\n    Issues with detailed and well-written content.\n    Issues where bug or error logs and reproduction steps are clearly specified within the content.\n    Issues where the location of suspicious source code has been identified by the reporter or maintainer.\n    Issues where the maintainer has confirmed the problem, set a direction, or requested contributions.\n    Issues directly created by the maintainer.\n    Issues with a \"good first issue\" label and no \"blocked\" or \"wait-for-triage\" labels.\n    Issues for which a PR has not yet been created (it's okay if someone has only stated they will create a PR).\n\n    For issues that meet the above criteria well, explain and emphasize them in detail.\n    There is no need to summarize issues that do not meet the above criteria.\n    \n    Generate a YAML object that matches the TypeScript type $RepoInfo below:\n\n\t\tRules:\n    - Wrap every YAML list item in double quotes. Escape only double quotes (\") inside the string with a backslash (\").\n    - From the issues that meet the criteria, provide a minimum of 3 and a maximum of 5 of the most suitable ones.\n\t\t- Provide a minimum of 2 and a maximum of 3 reasons within the\n  reasons list.\n    - Translate all user-facing string values within the YAML output into the language specified by ko-KR. Do not translate the YAML keys.\n\n    type Level = \"high\" | \"medium\" | \"low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueTitle: string;\n        issueURL: string;\n        issueDescription: string;\n        issueSuitability: LevelWithReasons;\n    }\n\n    interface LatestRelease {\n        name: string;\n        description: string;\n    }\n\n    interface RepoInfo {\n        latestRelease: LatestRelease;\n        issues: Issue[];\n    }\n\n    ------------\n    Example output:\n    latestRelease:\n      name: \"v1.2.0-beta.0\"\n      description: |\n        ...\n    issues:\n    - issueTitle: |\n      ...\n      issueURL: \"https://example.com\"\n      issueDescription: |\n      ...\n      issueSuitability:\n        level: \"medium\"\n        reasons:\n            - \"...\"\n"
+          "systemMessage": "=\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience, looking to contribute to open source.\n\n    First, summarize the key changes from the latest release provided below.\n    The summary should be a minimum of one and a maximum of three lines, highlighting the most important updates for potential contributors.\n\n    Next, search the issues below, read their content, and classify them according to the criteria for good contribution opportunities.\n    The URL for the issues is https://github.com/{{ $('Load Repo Info').item.json.owner }}/{{ $('Load Repo Info').item.json.name }}/issues.\n    When classifying issues, evaluate them based on issue title, issue content, and how well they meet the criteria (high, medium, low).\n\n    [Criteria for good contribution opportunities]\n    Issues with detailed and well-written content.\n    Issues where bug or error logs and reproduction steps are clearly specified within the content.\n    Issues where the location of suspicious source code has been identified by the reporter or maintainer.\n    Issues where the maintainer has confirmed the problem, set a direction, or requested contributions.\n    Issues directly created by the maintainer.\n    Issues with a \"good first issue\" label and no \"blocked\" or \"wait-for-triage\" labels.\n    Issues for which a PR has not yet been created (it's okay if someone has only stated they will create a PR).\n\n    For issues that meet the above criteria well, explain and emphasize them in detail.\n    There is no need to summarize issues that do not meet the above criteria.\n    \n    Generate a YAML object that matches the TypeScript type $RepoInfo below:\n\n\t\tRules:\n    - Wrap every YAML list item in double quotes. Escape only double quotes (\") inside the string with a backslash (\").\n    - From the issues that meet the criteria, provide a minimum of 3 and a maximum of 5 of the most suitable ones.\n\t\t- Provide a minimum of 2 and a maximum of 3 reasons within the\n  reasons list.\n    - Translate all user-facing string values within the YAML output into the language specified by en-US. Do not translate the YAML keys.\n\n    type Level = \"high\" | \"medium\" | \"low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueTitle: string;\n        issueURL: string;\n        issueDescription: string;\n        issueSuitability: LevelWithReasons;\n    }\n\n    interface LatestRelease {\n        name: string;\n        description: string;\n    }\n\n    interface RepoInfo {\n        latestRelease: LatestRelease;\n        issues: Issue[];\n    }\n\n    ------------\n    Example output:\n    latestRelease:\n      name: \"v1.2.0-beta.0\"\n      description: |\n        ...\n    issues:\n    - issueTitle: |\n      ...\n      issueURL: \"https://example.com\"\n      issueDescription: |\n      ...\n      issueSuitability:\n        level: \"medium\"\n        reasons:\n            - \"...\"\n"
         }
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
-      "position": [
-        32,
-        624
-      ],
-      "id": "9ca0496b-9938-466b-b159-164f72a2bc24",
+      "id": "8cf96e11-8bae-4585-b12a-7e22b97c2ebd",
       "name": "IssueRank Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1472,
+        928
+      ],
       "retryOnFail": true,
+      "typeVersion": 3,
       "waitBetweenTries": 3000
     },
     {
       "parameters": {
-        "model": "x-ai/grok-4.1-fast:free",
+        "model": "={{ $('Get Free Models').item.json.issueRankFallbackModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        0,
-        848
-      ],
-      "id": "5166ae3b-ef00-4bb5-8e9a-cb2608d6588d",
-      "name": "IssueRank Main Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "qwen/qwen3-coder:free",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        128,
-        848
-      ],
-      "id": "15339e92-4499-477d-97f8-8e146ef207a1",
+      "id": "40fdea76-e2e2-4542-a5f1-6ea24d807b00",
       "name": "IssueRank Fallback Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        1568,
+        1152
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -182,37 +149,37 @@
         "hasOutputParser": true,
         "needsFallback": true,
         "options": {
-          "systemMessage": "=\n    you are an ai assistant that must use the available mcp tools when appropriate.\n\n    when the user asks any question about a GitHub repository — including how to contribute, how to fix an issue, how code works, or anything requiring repository context — you MUST call the deepwiki `ask_question` tool.\n\n    Input format:\n    - repoName: string — e.g. \"GitHub repository: owner/repo\"\n    - question: string — contains exactly one GitHub issue (including title and body)\n\n    Instructions:\n\n    1. Parse the issue’s title and body from the `question` field.\n    2. Construct a single string for the `question` field of the tool call. It MUST include the issue title, body, and a request for guidance. Use this exact template:\n\n         \"Here is a GitHub issue.\n         Title: {issueTitle}\n         Body: {issueBody}\n         How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach?\"\n\n    3. Call the deepwiki `ask_question` tool with an **object** containing:\n         - repoName: string\n         - question: string (constructed from step 2)\n    4. Never include an object inside the `question` field. It MUST always be a single string.\n    5. Base your final answer ONLY on the returned tool response.\n    6. Generate a single YAML object that matches the TypeScript type `Issue` below.\n    7. Add a brief, one-sentence summary of the contribution in the `summary` field.\n    8. For the `keyword` field, provide 1 to 5 highly relevant keywords related to the issue.\n\n    Rules:\n    - Do not include markdown code blocks in the output. (e.g., do not use ```python... ```.)\n    - Wrap every YAML list item in double quotes. Escape only double quotes (\") inside the string with a backslash (\").\n    - Translate all user-facing string values within the YAML output into the language specified by ko-KR. Do not translate the YAML keys.\n\n    type Level = \"High\" | \"Medium\" | \"Low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueURL: string;\n        deepwikiLink: string;\n        rootCause: string;\n        resolutionApproach: string[];\n        technicalDifficulty: LevelWithReasons;\n        summary: string;\n        keyword: string[];\n        analogy: string;\n    }\n\n    ------------\n    Example output:\n\n    issueURL: \"https://example.com\"\n    deepwikiLink: \"https://deepwiki.com/example\"\n    rootCause: |\n      ...\n    resolutionApproach: \n      - \"...\"\n      - \"...\"\n    technicalDifficulty:\n      level: \"Low\"\n      reasons:\n        - \"...\"\n    summary: \"...\"\n    keyword:\n      - \"...\"\n      - \"...\"\n    analogy: \"...\"\n",
+          "systemMessage": "=\n    you are an ai assistant that must use the available mcp tools when appropriate.\n\n    when the user asks any question about a GitHub repository — including how to contribute, how to fix an issue, how code works, or anything requiring repository context — you MUST call the deepwiki `ask_question` tool.\n\n    Input format:\n    - repoName: string — e.g. \"GitHub repository: owner/repo\"\n    - question: string — contains exactly one GitHub issue (including title and body)\n\n    Instructions:\n\n    1. Parse the issue’s title and body from the `question` field.\n    2. Construct a single string for the `question` field of the tool call. It MUST include the issue title, body, and a request for guidance. Use this exact template:\n\n         \"Here is a GitHub issue.\n         Title: {issueTitle}\n         Body: {issueBody}\n         How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach?\"\n\n    3. Call the deepwiki `ask_question` tool with an **object** containing:\n         - repoName: string\n         - question: string (constructed from step 2)\n    4. Never include an object inside the `question` field. It MUST always be a single string.\n    5. Base your final answer ONLY on the returned tool response.\n    6. Generate a single YAML object that matches the TypeScript type `Issue` below.\n    7. Add a brief, one-sentence summary of the contribution in the `summary` field.\n    8. For the `keyword` field, provide 1 to 5 highly relevant keywords related to the issue.\n\n    Rules:\n    - Do not include markdown code blocks in the output. (e.g., do not use ```python... ```.)\n    - Wrap every YAML list item in double quotes. Escape only double quotes (\") inside the string with a backslash (\").\n    - Translate all user-facing string values within the YAML output into the language specified by en-US. Do not translate the YAML keys.\n\n    type Level = \"High\" | \"Medium\" | \"Low\";\n\n    interface LevelWithReasons {\n        level: Level;\n        reasons: string[];\n    }\n\n    interface Issue {\n        issueURL: string;\n        deepwikiLink: string;\n        rootCause: string;\n        resolutionApproach: string[];\n        technicalDifficulty: LevelWithReasons;\n        summary: string;\n        keyword: string[];\n        analogy: string;\n    }\n\n    ------------\n    Example output:\n\n    issueURL: \"https://example.com\"\n    deepwikiLink: \"https://deepwiki.com/example\"\n    rootCause: |\n      ...\n    resolutionApproach: \n      - \"...\"\n      - \"...\"\n    technicalDifficulty:\n      level: \"Low\"\n      reasons:\n        - \"...\"\n    summary: \"...\"\n    keyword:\n      - \"...\"\n      - \"...\"\n    analogy: \"...\"\n",
           "batching": {
             "batchSize": 3,
             "delayBetweenBatches": 5000
           }
         }
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
-      "position": [
-        1168,
-        624
-      ],
-      "id": "400b0a2c-d82c-4cd3-988b-d47df2f42dd2",
+      "id": "157888f8-a739-4b9f-a23c-6176cb4d616e",
       "name": "Deepwiki Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2608,
+        928
+      ],
       "retryOnFail": true,
+      "typeVersion": 3,
       "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "model": "x-ai/grok-4.1-fast:free",
+        "model": "={{ $('Get Free Models').item.json.deepwikiMainModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1072,
-        848
-      ],
-      "id": "868b5398-c429-41a7-91c3-47055b23355b",
+      "id": "790501c1-58d1-44e0-a953-b218906b0744",
       "name": "Deepwiki Main Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2512,
+        1152
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -222,17 +189,17 @@
     },
     {
       "parameters": {
-        "model": "qwen/qwen3-coder:free",
+        "model": "={{ $('Get Free Models').item.json.deepwikiFallbackModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1200,
-        848
-      ],
-      "id": "abdf1ee4-3730-4e09-84ad-fdc14673b813",
+      "id": "a3544d83-c737-46b2-b0ea-61627d10c5f3",
       "name": "Deepwiki Fallback Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2640,
+        1152
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -248,14 +215,14 @@
           "timeout": 60000
         }
       },
+      "id": "3df1533d-96b3-434b-acfa-f3159637e6f7",
+      "name": "Deepwiki MCP",
       "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
-      "typeVersion": 1.2,
       "position": [
-        1328,
-        848
+        2768,
+        1152
       ],
-      "id": "467ce14b-5484-4e57-a822-19943906811a",
-      "name": "Deepwiki MCP"
+      "typeVersion": 1.2
     },
     {
       "parameters": {
@@ -263,14 +230,14 @@
         "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"latestRelease\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"name\": {\n          \"type\": \"string\"\n        },\n        \"description\": {\n          \"type\": \"string\"\n        }\n      },\n      \"required\": [\"name\", \"description\"]\n    },\n    \"issues\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"issueTitle\": {\n            \"type\": \"string\"\n          },\n          \"issueURL\": {\n            \"type\": \"string\",\n            \"format\": \"uri\"\n          },\n          \"issueDescription\": {\n            \"type\": \"string\"\n          },\n          \"issueSuitability\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"level\": {\n                \"type\": \"string\",\n                \"enum\": [\"high\", \"medium\", \"low\"]\n              },\n              \"reasons\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              }\n            },\n            \"required\": [\"level\", \"reasons\"]\n          }\n        },\n        \"required\": [\"issueTitle\", \"issueURL\", \"issueDescription\", \"issueSuitability\"]\n      }\n    }\n  },\n  \"required\": [\"latestRelease\", \"issues\"]\n}",
         "autoFix": true
       },
+      "id": "55e40e4e-b5fd-4bdc-a202-c38df06d7bb0",
+      "name": "IssueRank Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
       "position": [
-        256,
-        848
+        1696,
+        1152
       ],
-      "id": "c5239797-e121-45bc-bed0-eba9b9639bd2",
-      "name": "IssueRank Structured Output Parser"
+      "typeVersion": 1.3
     },
     {
       "parameters": {
@@ -278,28 +245,28 @@
         "inputSchema": "{\n        \"type\": \"object\",\n        \"properties\": {\n            \"issueURL\": {\n            \"type\": \"string\",\n            \"format\": \"uri\"\n            },\n            \"deepwikiLink\": {\n            \"type\": \"string\",\n            \"format\": \"uri\"\n            },\n            \"rootCause\": {\n            \"type\": \"string\"\n            },\n            \"resolutionApproach\": {\n            \"type\": \"array\",\n            \"items\": {\n                \"type\": \"string\"\n            }\n            },\n            \"technicalDifficulty\": {\n            \"type\": \"object\",\n            \"properties\": {\n                \"level\": {\n                \"type\": \"string\",\n                \"enum\": [\"High\", \"Medium\", \"Low\"]\n                },\n                \"reasons\": {\n                \"type\": \"array\",\n                \"items\": {\n                    \"type\": \"string\"\n                }\n                }\n            },\n            \"required\": [\"level\", \"reasons\"]\n            },\n            \"summary\": {\n            \"type\": \"string\"\n            },\n            \"keyword\": {\n            \"type\": \"array\",\n            \"items\": {\n                \"type\": \"string\"\n            }\n            },\n            \"analogy\": {\n            \"type\": \"string\"\n            }\n        },\n        \"required\": [\n            \"issueURL\",\n            \"deepwikiLink\",\n            \"rootCause\",\n            \"resolutionApproach\",\n            \"technicalDifficulty\",\n            \"summary\"\n        ]\n}",
         "autoFix": true
       },
+      "id": "67ac635b-c9dd-48a1-b98b-11583f695b2e",
+      "name": "Deepwiki Structured Output Parser",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
       "position": [
-        1456,
-        848
+        2896,
+        1152
       ],
-      "id": "964ac76b-b135-4dbf-bb31-0c1fc0db9692",
-      "name": "Deepwiki Structured Output Parser"
+      "typeVersion": 1.3
     },
     {
       "parameters": {
-        "model": "nvidia/nemotron-nano-12b-v2-vl:free",
+        "model": "={{ $('Get Free Models').item.json.issueRankParserModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        336,
-        1056
-      ],
-      "id": "64a6e9e2-a0da-42b0-a77a-e29ec2abb66f",
+      "id": "9f4536f4-a257-40c7-ac8a-139f20a23558",
       "name": "IssueRank Parser Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        1776,
+        1360
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -309,17 +276,17 @@
     },
     {
       "parameters": {
-        "model": "nvidia/nemotron-nano-12b-v2-vl:free",
+        "model": "={{ $('Get Free Models').item.json.deepwikiParserModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1536,
-        1056
-      ],
-      "id": "9b183a12-2934-4f20-8e75-e91964bc08a1",
+      "id": "abc620b3-de59-4d70-a3b0-bf883a1919b8",
       "name": "Deepwiki Parser Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2976,
+        1360
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -333,33 +300,33 @@
         "text": "=\n\tI want you to create a newsletter title for the issue below.\n\n\t### Issue\n\t{{ $json.issues[0].toJsonString() }}\n\n\tOutput:\n",
         "needsFallback": true,
         "options": {
-          "systemMessage": "=\n\tYou are an AI assistant that creates a newsletter title based on a GitHub issue.\n\n\tInstructions:\n\t1. Read the provided GitHub issue.\n\t2. Generate a short, catchy, and clickbait-style newsletter title.\n\t3. The title MUST meet the following criteria:\n\t\t- It must include a relevant emoji at the beginning.\n\t\t- It must be easily understandable for a non-technical audience.\n\t\t- It must be fun and intriguing to maximize open rates.\n\t4. Translate the final title into the language specified by ko-KR. Do not translate the emoji.\n\n\tRules:\n\t- The output should be a single line of text containing only the title.\n\t- Do not include any other text, explanations, or markdown.\n\n\t------------\n\tExample (if target language is English):\n\t✨ Don't Miss Out! Your Weekly Dose of Awesome Insights.\n"
+          "systemMessage": "=\n\tYou are an AI assistant that creates a newsletter title based on a GitHub issue.\n\n\tInstructions:\n\t1. Read the provided GitHub issue.\n\t2. Generate a short, catchy, and clickbait-style newsletter title.\n\t3. The title MUST meet the following criteria:\n\t\t- It must include a relevant emoji at the beginning.\n\t\t- It must be easily understandable for a non-technical audience.\n\t\t- It must be fun and intriguing to maximize open rates.\n\t4. Translate the final title into the language specified by en-US.\n\n\tRules:\n\t- The output should be a single line of text containing only the title.\n\t- Do not include any other text, explanations, or markdown.\n\n\t------------\n\tExample (if target language is English):\n\t✨ Don't Miss Out! Your Weekly Dose of Awesome Insights.\n"
         }
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
-      "position": [
-        1824,
-        272
-      ],
-      "id": "d7b89cd9-1042-4258-9552-eaa2928614a6",
+      "id": "f9906d77-01e6-4906-9486-1215bd0feb9b",
       "name": "Title Generator Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        2624,
+        256
+      ],
       "retryOnFail": true,
+      "typeVersion": 3,
       "waitBetweenTries": 2000
     },
     {
       "parameters": {
-        "model": "x-ai/grok-4.1-fast:free",
+        "model": "={{ $('Get Free Models').item.json.titleGeneratorMainModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1760,
-        496
-      ],
-      "id": "88820e38-9e91-47f4-a631-416ced1d7546",
+      "id": "a7f0e4d2-49c9-4fb1-99d0-e6ff71625d19",
       "name": "Title Generator Main Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2624,
+        480
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -369,17 +336,17 @@
     },
     {
       "parameters": {
-        "model": "qwen/qwen3-coder:free",
+        "model": "={{ $('Get Free Models').item.json.titleGeneratorFallbackModel }}",
         "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1872,
-        512
-      ],
-      "id": "47db7cf3-d55a-443b-a294-853be2082a17",
+      "id": "8c44b955-7f11-4536-a43e-ce48d31dcb01",
       "name": "Title Generator Fallback Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "position": [
+        2752,
+        480
+      ],
+      "typeVersion": 1,
       "credentials": {
         "openRouterApi": {
           "id": "openRouterApi",
@@ -393,14 +360,201 @@
         "combineBy": "combineByPosition",
         "options": {}
       },
+      "id": "08bde729-c4da-4c99-946a-d0d1ffea17d4",
+      "name": "Merge1",
       "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
       "position": [
-        2224,
-        624
+        3616,
+        928
       ],
-      "id": "213c6ac0-0db0-4c2d-9d64-78c9715bfce0",
-      "name": "Merge1"
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "content": "## Usecases\nReceive a periodic newsletter featuring curated, contributor-friendly issues from your favorite repositories.\n\nBy regularly reviewing active issues and new releases, you'll naturally develop stronger habits around open source contribution as your brain starts recognizing these projects as important.\n\n\n### How it works\n* Collects the latest issues, comments, and recent commits using the GitHub API\n* Uses an AI model to select up to three beginner-friendly issues worth contributing to\n* Summarizes each issue—including contribution guidance and relevance—based on Deepwiki MCP data\n* Converts the summary into HTML and delivers it as an email newsletter\n\n### Requirements\n* [Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)\n* [Openrouter API key](https://openrouter.ai/settings/keys)\n* [Google App Password](https://myaccount.google.com/apppasswords)\n* Verify that your target open-source project is indexed\nat https://deepwiki.com/{owner}/{repo} (e.g. https://deepwiki.com/vercel/next.js)\n\n### How to Use\n1. Update the \"Load repo info\" configuration with your target repository's owner and name (e.g., owner: `vercel`, repo: `next.js`)\n2. Add your GitHub Personal Access Token to the credentials of the \"Get Issues from GitHub\" node\n3. Connect your OpenRouter API key to all models linked to the Agent node\n4. Add your Google App Password to the \"Send email\" node credentials\n5. Enter the email address of the account authenticated with the Google App Password in both the \"to email\" and \"from email\" fields—the newsletter will be sent to that address\n\n### Customization\n* Modify the maximum number of contributor-friendly issues retrieved in the \"Get Top Fit Issues\" node\n* For improved results, adjust the models connected to the Agent node\n* Refine the criteria for \"contributor-friendliness\" in the \"IssueRank Agent\" node\n\n### Cron Setup\n- Replace the manual trigger with a Schedule Trigger node or another scheduling-capable node\n- If you don't have an n8n Cloud account, use this [alternative](https://github.com/dst03106/n8n-issue-collector?tab=readme-ov-file#%EF%B8%8F-how-to-use) instead: fork the repository and follow the setup instructions\nd follow the setup instructions.\n",
+        "height": 928,
+        "width": 736
+      },
+      "id": "a6e5bf4c-cd55-4898-bce5-86b36bfaf8c8",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -848,
+        768
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 1. Selecting Contributor-Friendly Issues\nRetrieves issue data from the repository and identifies issues that are good opportunities for contribution.",
+        "height": 860,
+        "width": 1976,
+        "color": 7
+      },
+      "id": "cffd71d7-8a30-40f4-a1dd-d78e13ea4eac",
+      "name": "Sticky Note6",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 2-1. Generating a Newsletter Title\nCreates a newsletter title based on the issue content.",
+        "height": 492,
+        "width": 568,
+        "color": 7
+      },
+      "id": "af2d0fef-f0fa-470b-8e68-81a6eda335a0",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2448,
+        128
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 2-2. Summarizing Contribution Details\nGenerates information about contribution methods and levels (such as contribution suitability and technical difficulty) using Deepwiki MCP.",
+        "height": 716,
+        "width": 920,
+        "color": 7
+      },
+      "id": "1adc7dd3-6d4d-4751-8cee-18ed435e6ce4",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2256,
+        800
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## 3. Converting Issue Data to HTML and Sending via email\nConverts issue-related data into HTML format and sends it through email.",
+        "height": 300,
+        "width": 696,
+        "color": 7
+      },
+      "id": "806d707a-ae5a-42cd-bf27-2ce346d2e8a3",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3776,
+        800
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Newsletter\n![](https://lh3.googleusercontent.com/d/1iHWRiMm5mrWkA2r-t81Uzykqcss2Pl8G)",
+        "height": 488,
+        "width": 508
+      },
+      "id": "172e044c-6a6b-4bf5-89ac-4d46c0dce150",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        0,
+        0
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "## Newsletter\n![](https://lh3.googleusercontent.com/d/1Pfdp4mttjAM9E7rV_y5qDbhgqmunECF_)",
+        "height": 1064,
+        "width": 444
+      },
+      "id": "9e93773e-6cd5-4d0d-9b7e-51033501671d",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        1856
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "url": "https://openrouter.ai/api/v1/models",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openRouterApi",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "supported_parameters",
+              "value": "response_format"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        992,
+        928
+      ],
+      "id": "9e8d5bb6-9999-4756-a60c-64b0573406a2",
+      "name": "HTTP Request",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "={{ $('Get Free Models').item.json.issueRankMainModel }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        1152
+      ],
+      "id": "6240ae61-9e97-42fe-bab2-4f7a20538c74",
+      "name": "IssueRank Main Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const requiredModelKeys = [\n  \"issueRankMainModel\",\n  \"issueRankFallbackModel\",\n  \"issueRankParserModel\",\n  \"titleGeneratorMainModel\",\n  \"titleGeneratorFallbackModel\",\n  \"deepwikiMainModel\",\n  \"deepwikiFallbackModel\",\n  \"deepwikiParserModel\",\n]\nvar freeModels = [];\nvar requiredModels = {};\nfor (const item of $input.first().json.data) {\n  if (item.pricing.prompt === \"0\" && item.pricing.completion === \"0\") {\n    freeModels.push(item)\n  }\n}\n\nfreeModels.sort((item) => item.created)\nfreeModels.sort((a, b) => b.created - a.created)\n\nrequiredModelKeys.forEach((item, index) => {\n  requiredModels[item] = freeModels[index % freeModels.length].id\n});\n\nreturn requiredModels"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        928
+      ],
+      "id": "45bb5dcf-0747-47d2-9992-c5c8a0c80c15",
+      "name": "Get Free Models"
+    },
+    {
+      "parameters": {
+        "jsCode": "const mjml2html = require('mjml');\n  return {\n      htmlOutput: mjml2html($input.first().json.issueHTML)\n  }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4064,
+        928
+      ],
+      "id": "36b2de08-ff2b-4728-8396-2d8ec9ad1520",
+      "name": "convert MJML to HTML",
+      "executeOnce": false
     },
     {
       "parameters": {
@@ -409,10 +563,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2448,
-        624
+        3840,
+        928
       ],
-      "id": "09339ec8-6306-4e73-b945-ac7f98840e26",
+      "id": "de11b35d-7f55-41f4-a85b-30cac04f6529",
       "name": "convert MJML",
       "executeOnce": false,
       "alwaysOutputData": false
@@ -421,17 +575,17 @@
       "parameters": {
         "fromEmail": "",
         "toEmail": "",
-        "subject": "[Issue Report] {{ $('Load Repo Info').item.json.owner }}/{{ $('Load Repo Info').item.json.name }} - {{ $('Title Generator Agent').item.json.output }}",
-        "html": "{{ $('convert MJML to HTML').item.json.htmlOutput.html }}",
+        "subject": "=[Issue Report] {{ $('Load Repo Info').item.json.owner }}/{{ $('Load Repo Info').item.json.name }} - {{ $('Title Generator Agent').item.json.output }}",
+        "html": "={{ $('convert MJML to HTML').item.json.htmlOutput.html }}",
         "options": {}
       },
       "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
-        2896,
-        624
+        4288,
+        928
       ],
-      "id": "4fbe9184-c329-4691-9fcc-3061aaecdf57",
+      "id": "af3bd974-1a38-4016-866e-8564dbc654e0",
       "name": "Send email",
       "webhookId": "d1108327-f642-465e-81a5-bb8e25098f9f",
       "executeOnce": false,
@@ -441,48 +595,60 @@
           "name": "SMTP account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ed193ad8-d97e-4d55-9c3a-a5d61d56550e",
+              "leftValue": "={{ !!$json.data?.repository }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        992,
+        736
+      ],
+      "id": "e748bce4-a5c2-4244-8b72-08914918a22d",
+      "name": "If"
     }
   ],
   "pinData": {},
   "connections": {
-    "When clicking ‘Execute workflow’": {
+    "Merge": {
       "main": [
         [
           {
-            "node": "Load Repo Info",
+            "node": "Merge1",
             "type": "main",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
-    "convert MJML to HTML": {
+    "Merge1": {
       "main": [
         [
           {
-            "node": "Send email",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load Repo Info": {
-      "main": [
-        [
-          {
-            "node": "Get Issue From Github",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Issue From Github": {
-      "main": [
-        [
-          {
-            "node": "IssueRank Agent",
+            "node": "convert MJML",
             "type": "main",
             "index": 0
           }
@@ -505,30 +671,35 @@
         ]
       ]
     },
-    "get Top Fit Issues": {
+    "Deepwiki MCP": {
+      "ai_tool": [
+        [
+          {
+            "node": "Deepwiki Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deepwiki Agent": {
       "main": [
         [
           {
-            "node": "Split Out",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Title Generator Agent",
+            "node": "Merge",
             "type": "main",
             "index": 0
           }
-        ],
-        []
+        ]
       ]
     },
-    "Merge": {
+    "Load Repo Info": {
       "main": [
         [
           {
-            "node": "Merge1",
+            "node": "Get Issue From Github",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -544,33 +715,16 @@
         ]
       ]
     },
-    "IssueRank Main Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "IssueRank Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "IssueRank Fallback Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "IssueRank Agent",
-            "type": "ai_languageModel",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Deepwiki Agent": {
+    "get Top Fit Issues": {
       "main": [
         [
           {
-            "node": "Merge",
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Title Generator Agent",
             "type": "main",
             "index": 0
           }
@@ -588,45 +742,34 @@
         ]
       ]
     },
-    "Deepwiki Fallback Model": {
+    "Deepwiki Parser Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Deepwiki Agent",
+            "node": "Deepwiki Structured Output Parser",
             "type": "ai_languageModel",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Deepwiki MCP": {
-      "ai_tool": [
-        [
-          {
-            "node": "Deepwiki Agent",
-            "type": "ai_tool",
             "index": 0
           }
         ]
       ]
     },
-    "IssueRank Structured Output Parser": {
-      "ai_outputParser": [
+    "Get Issue From Github": {
+      "main": [
         [
           {
-            "node": "IssueRank Agent",
-            "type": "ai_outputParser",
+            "node": "If",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Deepwiki Structured Output Parser": {
-      "ai_outputParser": [
+    "Title Generator Agent": {
+      "main": [
         [
           {
-            "node": "Deepwiki Agent",
-            "type": "ai_outputParser",
+            "node": "Merge1",
+            "type": "main",
             "index": 0
           }
         ]
@@ -643,24 +786,24 @@
         ]
       ]
     },
-    "Deepwiki Parser Model": {
+    "Deepwiki Fallback Model": {
       "ai_languageModel": [
         [
           {
-            "node": "Deepwiki Structured Output Parser",
+            "node": "Deepwiki Agent",
             "type": "ai_languageModel",
-            "index": 0
+            "index": 1
           }
         ]
       ]
     },
-    "Title Generator Agent": {
-      "main": [
+    "IssueRank Fallback Model": {
+      "ai_languageModel": [
         [
           {
-            "node": "Merge1",
-            "type": "main",
-            "index": 0
+            "node": "IssueRank Agent",
+            "type": "ai_languageModel",
+            "index": 1
           }
         ]
       ]
@@ -687,11 +830,77 @@
         ]
       ]
     },
-    "Merge1": {
+    "Deepwiki Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Deepwiki Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IssueRank Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "IssueRank Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
       "main": [
         [
           {
-            "node": "convert MJML",
+            "node": "Load Repo Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Get Free Models",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IssueRank Main Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "IssueRank Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Free Models": {
+      "main": [
+        [
+          {
+            "node": "IssueRank Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "convert MJML to HTML": {
+      "main": [
+        [
+          {
+            "node": "Send email",
             "type": "main",
             "index": 0
           }
@@ -708,16 +917,26 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6d017900-9ac1-48b3-ae24-c7d08128c49a",
+  "versionId": "13fa4dbc-0128-4c7a-9fc8-3dadc3f6e14b",
   "meta": {
-    "templateCredsSetupCompleted": true,
-    "instanceId": "c4eb748d1201f6efcf3fb4abe55ad9f6c4623960d681ba4f9bd76fc5b7ea8d40"
+    "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96"
   },
   "tags": []
 }

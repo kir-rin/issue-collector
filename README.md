@@ -35,7 +35,7 @@ Choose either one depending on your preferred workflow.
 3.  In your repository settings, navigate to `Settings` > `Security` > `Secrets and variables` > `Actions` to add the following:
     - **Secrets**
         - `GOOGLE_APP_PASSWORD`
-        - `N8N_GITHUB_API_KEY`
+        - `N8N_GITHUB_ACCESS_TOKEN`
         - `OPENROUTER_API_KEY`
     - **Variables**
         - `EMAIL`
