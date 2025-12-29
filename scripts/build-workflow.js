@@ -1,6 +1,8 @@
+const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
+const tmpDir = os.tmpdir(); 
 /**
  * 노드 이름을 kebab-case로 변환
  * @param {string} name - 변환할 노드 이름
@@ -68,9 +70,7 @@ function readResourceFiles() {
 function buildWorkflow() {
   console.log('🔨 n8n workflow 빌드를 시작합니다...\n');
 
-  // 1. workflow 파일 읽기 (인자로 받거나 기본값 사용)
-  const inputFile = process.argv[2] || '.github/workflows/n8n.json';
-  const workflowPath = path.join(__dirname, '..', inputFile);
+  const workflowPath = path.join(__dirname, '../n8n.json');
   
   if (!fs.existsSync(workflowPath)) {
     console.error('❌ n8n.json 파일을 찾을 수 없습니다:', workflowPath);
@@ -102,15 +102,8 @@ function buildWorkflow() {
     }
   }
 
-  // 4. dist 폴더 생성 (없으면)
-  const distDir = path.join(__dirname, '../dist');
-  if (!fs.existsSync(distDir)) {
-    fs.mkdirSync(distDir, { recursive: true });
-    console.log('\n✓ dist 폴더를 생성했습니다.');
-  }
-
-  // 5. workflow.json으로 출력
-  const outputPath = path.join(distDir, 'workflow.json');
+  // 4. workflow.json으로 출력
+  const outputPath = path.join(tmpDir, 'workflow.json');
   fs.writeFileSync(outputPath, JSON.stringify(workflow, null, 2), 'utf8');
 
   console.log(`\n✅ 빌드 완료!`);
