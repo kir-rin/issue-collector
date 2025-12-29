@@ -2,5 +2,3 @@
 .vscode/*
 dist/*
 TODO.md
-**/.env
-.DS_Store
