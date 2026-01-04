@@ -5,7 +5,7 @@ case "$1" in
 		;;
   build)
 		docker rmi $(docker images -aq)
-		docker buildx build --platform linux/arm64 --provenance=false -f lambda/Dockerfile -t docker-image:test .
+		docker buildx build --platform linux/arm64 --provenance=false -f lambda/Dockerfile.local -t docker-image:test .
     ;;
   run)
 		docker run --platform linux/arm64 -p 9000:8080 --rm --name ic docker-image:test 

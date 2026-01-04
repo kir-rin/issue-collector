@@ -1,0 +1,23 @@
+FROM public.ecr.aws/lambda/nodejs:22
+
+RUN dnf install -y shadow-utils sqlite npm
+RUN /usr/sbin/groupadd -r app && /usr/sbin/useradd -r -g app -d /home/app -s /sbin/nologin app
+# Lambda가 쓰는 임시 디렉터리만 쓰기 가능하도록
+RUN mkdir -p /tmp && chown -R app:app /tmp
+
+COPY package*.json .
+RUN npm ci
+
+ENV N8N_LOG_LEVEL=error                                              
+ENV NODE_FUNCTION_ALLOW_EXTERNAL=mjml                                
+ENV N8N_USER_FOLDER=/tmp
+
+COPY lambda/index.js n8n.json ${LAMBDA_TASK_ROOT}
+COPY scripts/ ${LAMBDA_TASK_ROOT}/scripts/
+COPY resources/ ${LAMBDA_TASK_ROOT}/resources/
+  
+RUN chmod +x ${LAMBDA_TASK_ROOT}/scripts/entrypoint.sh ${LAMBDA_TASK_ROOT}/scripts/import-workflow.js
+
+# 비-root로 전환
+USER app
+CMD [ "index.handler" ]
