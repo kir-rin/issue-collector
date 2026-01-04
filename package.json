@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "license": "ISC",
   "type": "commonjs",
-  "bin": {
-    "n8n-import": "./scripts/import-workflow.js"
-  },
   "dependencies": {
     "dotenv": "^17.2.3",
     "mjml": "^4.16.1",
