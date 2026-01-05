@@ -7,7 +7,7 @@ const inputSchema = `{
 		},
 		"issueURL": {
 			"type": "string",
-			"format": "uri"
+			"pattern": "^https://github\\\\.com/.+/issues/\\\\d+$"
 		},
 		"deepwikiLink": {
 			"type": "string",
