@@ -58,7 +58,9 @@ const inputSchema = `{
 		"rootCause",
 		"resolutionApproach",
 		"technicalDifficulty",
-		"summary"
+		"summary",
+		"keyword",
+    "analogy"
 	]
 }`;
 
