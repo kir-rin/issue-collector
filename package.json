@@ -4,6 +4,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@langchain/mcp-adapters": "^1.1.1",
     "dotenv": "^17.2.3",
     "mjml": "^4.16.1",
     "n8n": "^2.0.0"

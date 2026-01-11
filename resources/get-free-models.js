@@ -7,8 +7,6 @@ const getFreeModels = function() {
 		"titleGeneratorFallbackModel",
 		"titleGeneratorParserModel",
 		"deepwikiMainModel",
-		"deepwikiFallbackModel",
-		"deepwikiParserModel",
 	]
 	var freeModels = [];
 	var requiredModels = {};

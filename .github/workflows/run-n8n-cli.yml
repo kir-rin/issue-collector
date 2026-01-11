@@ -35,4 +35,6 @@ jobs:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
           N8N_GITHUB_ACCESS_TOKEN: ${{ secrets.N8N_GITHUB_ACCESS_TOKEN }}
           GOOGLE_APP_PASSWORD: ${{ secrets.GOOGLE_APP_PASSWORD }}
-        run: sh scripts/entrypoint.sh
+        run: |
+          cp .env.local .env
+          sh scripts/entrypoint.sh
