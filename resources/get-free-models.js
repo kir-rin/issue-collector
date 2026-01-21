@@ -1,30 +1,19 @@
 const getFreeModels = function() {
-	const requiredModelKeys = [
-		"issueRankMainModel",
-		"issueRankFallbackModel",
-		"issueRankParserModel",
-		"deepwikiMainModel",
-		"deepwikiFallbackModel",
-		"deepwikiParserModel",
-		"titleGeneratorMainModel",
-		"titleGeneratorFallbackModel",
-		"titleGeneratorParserModel",
-	]
+	const requiredModelLength = 9;
 	var freeModels = [];
-	var requiredModels = {};
+	var requiredModels = [];
 	for (const item of $input.first().json.data) {
 		if (item.pricing.prompt === "0" && item.pricing.completion === "0") {
 			freeModels.push(item)
 		}
 	}
 	freeModels.sort((a, b) => b.created - a.created)
-	requiredModelKeys.forEach((item, index) => {
-		requiredModels[item] = freeModels[index % freeModels.length].id
+	Array.from({ length: requiredModelLength }).forEach((_item, index) => {
+		requiredModels.push({id : freeModels[index % freeModels.length].id});
 	});
-
 	return requiredModels
 };
-  
+
 module.exports = {
-    "jsCode": getFreeModels.toString()
+	"jsCode": getFreeModels.toString()
 };

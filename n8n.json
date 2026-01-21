@@ -96,42 +96,41 @@
     },
     {
       "parameters": {
-        "content": "## 3. Generating a Newsletter Title\nCreates a newsletter title based on the issue content.",
+        "content": "# 3. Generating a Newsletter Title\n### Creates a newsletter title based on the issue content.",
         "height": 636,
-        "width": 504,
-        "color": 7
+        "width": 584,
+        "color": 4
       },
       "id": "af2d0fef-f0fa-470b-8e68-81a6eda335a0",
       "name": "Sticky Note7",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3504,
+        3488,
         400
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
-        "content": "## 2.Summarizing Contribution Details\nGenerates information about contribution methods and levels (such as contribution suitability and technical difficulty using Deepwiki MCP. ",
+        "content": "# 2.Summarizing Contribution Details\n### Generates information about contribution methods and levels (such as contribution suitability and technical difficulty using Deepwiki MCP. ",
         "height": 636,
         "width": 808,
-        "color": 7
+        "color": 5
       },
       "id": "1adc7dd3-6d4d-4751-8cee-18ed435e6ce4",
       "name": "Sticky Note8",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2512,
+        2496,
         400
       ],
       "typeVersion": 1
     },
     {
       "parameters": {
-        "content": "## 4. Converting Issue Data to HTML and Sending via email\nConverts issue-related data into HTML format and sends it through email.",
+        "content": "# 4. Converting Issue Data to HTML and Sending via email\n### Converts issue-related data into HTML format and sends it through email.",
         "height": 636,
-        "width": 696,
-        "color": 7
+        "width": 696
       },
       "id": "806d707a-ae5a-42cd-bf27-2ce346d2e8a3",
       "name": "Sticky Note9",
@@ -180,10 +179,7 @@
         "sendQuery": true,
         "queryParameters": {
           "parameters": [
-            {
-              "name": "supported_parameters",
-              "value": "structured_outputs,tools"
-            }
+            {}
           ]
         },
         "options": {}
@@ -202,19 +198,6 @@
           "name": "OpenRouter account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const requiredModelKeys = [\n\t\"issueRankMainModel\",\n\t\"issueRankFallbackModel\",\n\t\"issueRankParserModel\",\n\t\"titleGeneratorMainModel\",\n\t\"titleGeneratorFallbackModel\",\n\t\"titleGeneratorParserModel\",\n\t\"deepwikiMainModel\",\n\t\"deepwikiFallbackModel\",\n\t\"deepwikiParserModel\",\n]\nvar freeModels = [];\nvar requiredModels = {};\nfor (const item of $input.first().json.data) {\n\tif (item.pricing.prompt === \"0\" && item.pricing.completion === \"0\") {\n\t\tfreeModels.push(item)\n\t}\n}\nfreeModels.sort((a, b) => b.created - a.created)\nrequiredModelKeys.forEach((item, index) => {\n\trequiredModels[item] = freeModels[index % freeModels.length].id\n});\n\nreturn requiredModels"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1376,
-        592
-      ],
-      "id": "45bb5dcf-0747-47d2-9992-c5c8a0c80c15",
-      "name": "Get Free Models"
     },
     {
       "parameters": {
@@ -274,7 +257,7 @@
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\nconst { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst llmModel = await this.getInputConnectionData('ai_languageModel', 0);\nconst mainModel = llmModel[0];\nconst fallbackModel = llmModel[1];\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst userPrompt = `\n\tDeepWiki Analysis:\n\t{deepwikiResponse}\n\n\tExtract and return ONLY a JSON object following the exact schema. No markdown, no code blocks, just raw JSON.\n\tPreserve the full length and content of the original text rather than summarizing\n`;\n\nconst systemPrompt = `\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\tFollow this JSON Schema:\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\tRequirements:\n\t- All content must be in \"$ko-KR\"\n\t- translationLanguageCode should be \"$ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\tExample output:\n\t{\n\t\t\"translationLanguageCode\": \"en\",\n\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\"resolutionApproach\": [\n\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\"Implement event listener removal logic\"\n\t\t],\n\t\t\"technicalDifficulty\": {\n\t\t\t\"level\": \"Medium\",\n\t\t\t\"reasons\": [\n\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\"Need memory profiling experience\"\n\t\t\t]\n\t\t},\n\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t}\n\n\tOutput ONLY the JSON object. No additional text.\n`;\nconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t[\"user\", userPrompt]\n]);\n\nasync function deepwikiToolNode({ issue }) {\n\tconst toolCall = {\n\t\tname: \"ask_question\",\n\t\targs: {\n\t\t\trepoName: repoName,\n\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t Title: ${issue.issueTitle}\n\t\t\t\t Body: ${issue.issueDescription}\n\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t},\n\t\tid: `call_${Date.now()}`,\n\t\ttype: \"tool\"\n\t};\n\tconst aiMessage = new AIMessage({\n\t\tcontent: \"\",\n\t\ttool_calls: [toolCall]\n\t});\n\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\tmessages: [aiMessage]\n\t});\n\treturn { deepwikiResponses: [{ \n\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\tissueURL: issue.issueURL\t\n\t}]};\n}\n\nconst agent = createAgent({\n\tmodel: mainModel,\n\tmiddleware: [\n\t\tmodelFallbackMiddleware(fallbackModel),\n\t\ttoolRetryMiddleware({              \n\t\t\tmaxRetries: 3,\n\t\t\tbackoffFactor: 2.0\n\t\t})\n\t],\n\tsystemPrompt: systemPrompt,\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\nasync function reasonNode({ deepwikiResponse, issueURL, retryCount }) {\n\tconst userMessages = await userPromptTemplate.invoke({ \n\t\tdeepwikiResponse: deepwikiResponse,\n\t});\n\tconst reasonResult = await agent.invoke({ \n\t\tmessages: userMessages.messages, \n\t});\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content; \n\tif (!aiMessage?.trim()) {\n\t\tif (retryCount < 3) return new Send(\"reason\", {\n\t\t\tdeepwikiResponse,\n\t\t\tissueURL,\n\t\t\tretryCount: retryCount + 1\n\t\t})\n\t\tthrow new Error(\n\t\t\t`Failed to get structured response from DeepWiki after ${retryCount} retries. ` +\n\t\t\t`Issue URL: ${issueURL}. ` +\n\t\t\t`The model returned an empty structured response.`\n\t\t);\n\t}\n\tconst parsedMessage = await outputParser.parse(aiMessage);\t\n\tparsedMessage.output.issueURL = issueURL\n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send(\"reason\", { deepwikiResponse, issueURL, retryCount: 0 }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst result = await workflow.invoke({});\nreturn result.finalAnswers;"
+            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\nconst { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst workflowStaticData = $getWorkflowStaticData('global');\nconst { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst userPrompt = `\n\tDeepWiki Analysis:\n\t{deepwikiResponse}\n\n\tExtract and return ONLY a JSON object following the exact schema. No markdown, no code blocks, just raw JSON.\n\tPreserve the full length and content of the original text rather than summarizing\n`;\n\nconst systemPrompt = `\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\tFollow this JSON Schema:\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\tRequirements:\n\t- All content must be in \"$ko-KR\"\n\t- translationLanguageCode should be \"$ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\tExample output:\n\t{\n\t\t\"output\": {\n\t\t\t\"translationLanguageCode\": \"en\",\n\t\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\t\"resolutionApproach\": [\n\t\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\t\"Implement event listener removal logic\"\n\t\t\t],\n\t\t\t\"technicalDifficulty\": {\n\t\t\t\t\"level\": \"Medium\",\n\t\t\t\t\"reasons\": [\n\t\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\t\"Need memory profiling experience\"\n\t\t\t\t]\n\t\t\t},\n\t\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t\t}\n\t}\n\n\tOutput ONLY the JSON object. No additional text.\n`;\nconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t[\"user\", userPrompt]\n]);\n\nasync function deepwikiToolNode({ issue }) {\n\tconst toolCall = {\n\t\tname: \"ask_question\",\n\t\targs: {\n\t\t\trepoName: repoName,\n\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t Title: ${issue.issueTitle}\n\t\t\t\t Body: ${issue.issueDescription}\n\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t},\n\t\tid: `call_${Date.now()}`,\n\t\ttype: \"tool\"\n\t};\n\tconst aiMessage = new AIMessage({\n\t\tcontent: \"\",\n\t\ttool_calls: [toolCall]\n\t});\n\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\tmessages: [aiMessage]\n\t});\n\treturn { deepwikiResponses: [{ \n\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\tissueURL: issue.issueURL\t\n\t}]};\n}\n\nconst agent = createAgent({\n\tmodel: mainModel,\n\tmiddleware: [\n\t\tmodelFallbackMiddleware(...otherModels),\n\t\ttoolRetryMiddleware({              \n\t\t\tmaxRetries: 3,\n\t\t\tbackoffFactor: 2.0\n\t\t})\n\t],\n\tsystemPrompt: systemPrompt,\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\nasync function reasonNode({ deepwikiResponse, issueURL, retryCount }) {\n\tconst userMessages = await userPromptTemplate.invoke({ \n\t\tdeepwikiResponse: deepwikiResponse,\n\t});\n\tconst reasonResult = await agent.invoke({ \n\t\tmessages: userMessages.messages, \n\t});\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content; \n\tif (!aiMessage?.trim()) {\n\t\tif (retryCount < 3) return new Send(\"reason\", {\n\t\t\tdeepwikiResponse,\n\t\t\tissueURL,\n\t\t\tretryCount: retryCount + 1\n\t\t})\n\t\tthrow new Error(\n\t\t\t`Failed to get structured response from DeepWiki after ${retryCount} retries. ` +\n\t\t\t`Issue URL: ${issueURL}. ` +\n\t\t\t`The model returned an empty structured response.`\n\t\t);\n\t}\n\tconst parsedMessage = await outputParser.parse(aiMessage);\t\n\tparsedMessage.output.issueURL = issueURL\n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send(\"reason\", { deepwikiResponse, issueURL, retryCount: 0 }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst result = await workflow.invoke({});\nreturn result.finalAnswers;"
           }
         },
         "inputs": {
@@ -282,11 +265,6 @@
             {
               "type": "ai_outputParser",
               "maxConnections": 1,
-              "required": true
-            },
-            {
-              "type": "ai_languageModel",
-              "maxConnections": 2,
               "required": true
             },
             {
@@ -317,7 +295,7 @@
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\n  const { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\n\n\tconst llmModel = await this.getInputConnectionData('ai_languageModel', 0);\n\tconst mainModel = llmModel[0];\n\tconst fallbackModel = llmModel[1];\n\t\n\tconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\n\tconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\n\tconst issues = repositoryInfo.issues.nodes;\n\tconst release =\trepositoryInfo.releases.nodes[0];\n\n\tconst IssueAnalysisSchema = $('Issue Analysis Schema').item.json;\n\tconst wrappedSchema = {\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\toutput: IssueAnalysisSchema \n\t\t},\n\t\trequired: [\"output\"]\n\t};\n\n  const userPrompt = `\n\t\t[ISSUES]\n\t\t{issuesJson}\n\n\t\t[RELEASE]\n\t\t{releaseJson}\n\n\t\tPlease analyze the issues and release above. Output the JSON result.\n  `.trim();\n\tconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t\t[\"user\", userPrompt]\n\t]);\n\n  const systemPrompt = `\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\t\tFollow this JSON Schema:\n\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t\tFirst, summarize the key changes from the latest release (1-3 lines, in ${process.env.TRANSLATION_LANGUAGE}).\n\n\t\tNext, analyze each issue and classify their contribution opportunity level based on:\n\n\t\t[Criteria for good contribution opportunities]\n\t\t1. Issues with detailed and well-written content\n\t\t2. Issues where bug/error logs and reproduction steps are clearly specified\n\t\t3. Issues where the location of suspicious source code has been identified\n\t\t4. Issues where the maintainer has confirmed the problem or requested contributions\n\t\t5. Issues directly created by the maintainer\n\t\t6. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n\t\t7. Issues without an existing PR\n\n\t\tFor each issue, provide:\n\t\t- level: \"high\" | \"medium\" | \"low\"\n\t\t- reasons: array of 2-4 reasons explaining the level\n\n\t\tFinally, select the top 3-5 most suitable issues and output as JSON.\n\n\t\tRules:\n\t\t- Translate all user-facing strings into $ko-KR\n\t\t- Keep keys in English\n\t\t- Do not include markdown code blocks in the output\n  `.trim();\n\n\tconst agent = createAgent({\n\t\tmodel: mainModel,\n\t\tmiddleware: [\n\t\t\tmodelFallbackMiddleware(fallbackModel),\n\t\t\ttoolRetryMiddleware({              \n\t\t\t\tmaxRetries: 3,\n\t\t\t\tbackoffFactor: 2.0\n\t\t\t})\n\t\t],\n\t\tsystemPrompt: systemPrompt,\n\t});\n\tconst userMessages = await userPromptTemplate.invoke({ \n\t\tissuesJson: JSON.stringify(issues, null, 2),\n\t\treleaseJson: JSON.stringify(release)\n\t});\n\tconst result = await agent.invoke({ \n\t\tmessages: userMessages.messages, \n\t});\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\n\tconst parsedMessage = await outputParser.parse(aiMessage)\n\tparsedMessage.output.latestRelease.url = release.url\n  return [parsedMessage.output];"
+            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\n  const { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\n\t\n\tconst workflowStaticData = $getWorkflowStaticData('global');\n \t\tconst { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;\n\t\n\tconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\n\tconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\n\tconst issues = repositoryInfo.issues.nodes;\n\tconst release =\trepositoryInfo.releases.nodes[0];\n\n\tconst IssueAnalysisSchema = $('Issue Analysis Schema').item.json;\n\tconst wrappedSchema = {\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\toutput: IssueAnalysisSchema \n\t\t},\n\t\trequired: [\"output\"]\n\t};\n\n  const userPrompt = `\n\t\t[ISSUES]\n\t\t{issuesJson}\n\n\t\t[RELEASE]\n\t\t{releaseJson}\n\n\t\tPlease analyze the issues and release above. Output the JSON result.\n  `.trim();\n\tconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t\t[\"user\", userPrompt]\n\t]);\n\n  const systemPrompt = `\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\t\tFollow this JSON Schema:\n\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t\tFirst, summarize the key changes from the latest release (1-3 lines, in $ko-KR).\n\n\t\tNext, analyze each issue and classify their contribution opportunity level based on:\n\n\t\t[Criteria for good contribution opportunities]\n\t\t1. Issues with detailed and well-written content\n\t\t2. Issues where bug/error logs and reproduction steps are clearly specified\n\t\t3. Issues where the location of suspicious source code has been identified\n\t\t4. Issues where the maintainer has confirmed the problem or requested contributions\n\t\t5. Issues directly created by the maintainer\n\t\t6. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n\t\t7. Issues without an existing PR\n\n\t\tFor each issue, provide:\n\t\t- level: \"high\" | \"medium\" | \"low\"\n\t\t- reasons: array of 2-4 reasons explaining the level\n\n\t\tFinally, select the top 3-5 most suitable issues and output as JSON.\n\n\t\tRules:\n\t\t- Translate all user-facing strings into $ko-KR\n\t\t- Keep keys in English\n\t\t- Do not include markdown code blocks in the output\n  `.trim();\n\n\tconst agent = createAgent({\n\t\tmodel: mainModel,\n\t\tmiddleware: [\n\t\t\tmodelFallbackMiddleware(...otherModels),\n\t\t\ttoolRetryMiddleware({              \n\t\t\t\tmaxRetries: 3,\n\t\t\t\tbackoffFactor: 2.0\n\t\t\t})\n\t\t],\n\t\tsystemPrompt: systemPrompt,\n\t});\n\tconst userMessages = await userPromptTemplate.invoke({ \n\t\tissuesJson: JSON.stringify(issues, null, 2),\n\t\treleaseJson: JSON.stringify(release)\n\t});\n\tconst result = await agent.invoke({ \n\t\tmessages: userMessages.messages, \n\t});\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\n\tconst parsedMessage = await outputParser.parse(aiMessage)\n\tparsedMessage.output.latestRelease.url = release.url\n  return [parsedMessage.output];"
           }
         },
         "inputs": {
@@ -325,11 +303,6 @@
             {
               "type": "ai_outputParser",
               "maxConnections": 1,
-              "required": true
-            },
-            {
-              "type": "ai_languageModel",
-              "maxConnections": 2,
               "required": true
             },
             {
@@ -360,7 +333,7 @@
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\n  const { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\n\n  const llmModel = await this.getInputConnectionData('ai_languageModel', 0);\n\tconst mainModel = llmModel[0];\n\tconst fallbackModel = llmModel[1];\n\n\tconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\n  const issue = $('Merge').first().json;\n\n\tconst NewsletterTitleSchema = $('Title Generator Schema').item.json;\n\tconst wrappedSchema = {\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\toutput: NewsletterTitleSchema \n\t\t},\n\t\trequired: [\"output\"]\n\t};\n\n  const userPrompt = `\n      Please create a newsletter title for the issue below.\n\n      ### Issue\n      Title: {issueTitle}\n      Body: {issueDescription}\n\t\t\tSummary: {summary}\n\t\t\tAnalogy: {analogy}\n\n      Output:\n  `;\n\tconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t\t[\"user\", userPrompt]\n\t]);\n\n  const systemPrompt = `\n      You are an AI assistant who creates newsletter titles based on GitHub issues.\n\n\t\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\t\t\tFollow this JSON Schema:\n\t\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n      Rules:\n      - Do not include markdown code blocks in the output.\n      - Translate all user-facing string values into $ko-KR. Keep the keys in English.\n\n      Instructions:\n      1. Read the provided GitHub issue.\n      2. Generate a short, catchy newsletter title.\n      3. The title should meet these criteria:\n          - Include a relevant emoji at the beginning.\n          - Be easy for a non-technical audience to understand.\n          - Be fun and intriguing to maximize open rates.\n      4. Translate the final title into $ko-KR.\n  `;\nconst agent = createAgent({\n\tmodel: mainModel,\n\tmiddleware: [\n\t\tmodelFallbackMiddleware(fallbackModel),\n\t\ttoolRetryMiddleware({              \n\t\t\tmaxRetries: 3,\n\t\t\tbackoffFactor: 2.0\n\t\t})\n\t],\n\tsystemPrompt: systemPrompt,\n});\nconst userMessages = await userPromptTemplate.invoke({...issue});\nconst result = await agent.invoke({ \n\tmessages: userMessages.messages, \n});\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\nconst parsedMessage = await outputParser.parse(aiMessage)\nreturn [parsedMessage.output];"
+            "code": "const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require(\"langchain\");\n  const { ChatPromptTemplate } = require(\"@langchain/core/prompts\");\n\t\n\tconst workflowStaticData = $getWorkflowStaticData('global');\n\tconst { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;\n\n\tconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\n \t\tconst issue = $('Merge').first().json;\n\n\tconst NewsletterTitleSchema = $('Title Generator Schema').item.json;\n\tconst wrappedSchema = {\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\toutput: NewsletterTitleSchema \n\t\t},\n\t\trequired: [\"output\"]\n\t};\n\n  const userPrompt = `\n      Please create a newsletter title for the issue below.\n\n      ### Issue\n      Title: {issueTitle}\n      Body: {issueDescription}\n\t\t\tSummary: {summary}\n\t\t\tAnalogy: {analogy}\n\n      Output:\n  `;\n\tconst userPromptTemplate = ChatPromptTemplate.fromMessages([\n\t\t[\"user\", userPrompt]\n\t]);\n\n  const systemPrompt = `\n      You are an AI assistant who creates newsletter titles based on GitHub issues.\n\n\t\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\n\t\t\tFollow this JSON Schema:\n\t\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n      Rules:\n      - Do not include markdown code blocks in the output.\n      - Translate all user-facing string values into $ko-KR. Keep the keys in English.\n\n      Instructions:\n      1. Read the provided GitHub issue.\n      2. Generate a short, catchy newsletter title.\n      3. The title should meet these criteria:\n          - Include a relevant emoji at the beginning.\n          - Be easy for a non-technical audience to understand.\n          - Be fun and intriguing to maximize open rates.\n      4. Translate the final title into $ko-KR.\n  `;\nconst agent = createAgent({\n\tmodel: mainModel,\n\tmiddleware: [\n\t\tmodelFallbackMiddleware(...otherModels),\n\t\ttoolRetryMiddleware({              \n\t\t\tmaxRetries: 3,\n\t\t\tbackoffFactor: 2.0\n\t\t})\n\t],\n\tsystemPrompt: systemPrompt,\n});\nconst userMessages = await userPromptTemplate.invoke({...issue});\nconst result = await agent.invoke({ \n\tmessages: userMessages.messages, \n});\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\nconst parsedMessage = await outputParser.parse(aiMessage)\nreturn [parsedMessage.output];"
           }
         },
         "inputs": {
@@ -368,11 +341,6 @@
             {
               "type": "ai_outputParser",
               "maxConnections": 1,
-              "required": true
-            },
-            {
-              "type": "ai_languageModel",
-              "maxConnections": 2,
               "required": true
             },
             {
@@ -401,10 +369,10 @@
     },
     {
       "parameters": {
-        "content": "## 1. Analyze GitHub Issues for Contributors\nEvaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
+        "content": "# 1. Analyze GitHub Issues for Contributors\n### Evaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
         "height": 636,
         "width": 696,
-        "color": 7
+        "color": 2
       },
       "id": "f570e2fd-90b2-425e-839b-dd430dc8e41e",
       "name": "Sticky Note10",
@@ -414,72 +382,6 @@
         400
       ],
       "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').first().json.deepwikiFallbackModel }}",
-        "options": {
-          "timeout": 40000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        2832,
-        928
-      ],
-      "id": "dc116653-e7f1-428b-a99e-0d9277095994",
-      "name": "Deepwiki Fallback Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').first().json.deepwikiMainModel }}",
-        "options": {
-          "timeout": 40000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        2976,
-        928
-      ],
-      "id": "b8ea9497-c86f-4072-9421-bfb1791e7dfb",
-      "name": "Deepwiki Main Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').item.json.deepwikiParserModel }}",
-        "options": {
-          "timeout": 40000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        2608,
-        1056
-      ],
-      "id": "131ee3c5-892a-428e-b78a-723d52d88354",
-      "name": "Deepwiki Parser Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
     },
     {
       "parameters": {
@@ -497,7 +399,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueAnalysisOutputSchema = {\n\ttitle: \"issue_analysis_output\",\n\tdescription: \"Analysis result of GitHub issues and latest release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"en\", \"ko\", \"ja\", \"zh\", \"es\", \"fr\", \"de\", \"ru\", \"ar\", \"pt\"],\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tname: { type: \"string\", description: \"Release name\" },\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Release descriptions\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tdescription: \"Array of release details\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"name\", \"details\"]\n\t\t},\n\t\tissues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\tissueTitle: { type: \"string\", description: \"Issue title\" },\n\t\t\t\t\tissueURL: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tissueDescription: { type: \"string\", description: \"Issue description\" },\n\t\t\t\t\tissueSuitability: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tlevel: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tenum: [\"high\", \"medium\", \"low\"],\n\t\t\t\t\t\t\t\tdescription: \"Contribution opportunity level\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\treasons: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Reasons for the level\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"level\", \"reasons\"]\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"issueTitle\", \"issueURL\", \"issueDescription\", \"issueSuitability\"]\n\t\t\t},\n\t\t\tdescription: \"Top 3-5 suitable issues\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\", \"issues\"]\n};\nreturn issueAnalysisOutputSchema"
+        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueAnalysisOutputSchema = {\n\ttitle: \"issue_analysis_output\",\n\tdescription: \"Analysis result of GitHub issues and latest release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tname: { type: \"string\", description: \"Release name\" },\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Release descriptions\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tdescription: \"Array of release details\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"name\", \"details\"]\n\t\t},\n\t\tissues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\tissueTitle: { type: \"string\", description: \"Issue title\" },\n\t\t\t\t\tissueURL: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tissueDescription: { type: \"string\", description: \"Issue description\" },\n\t\t\t\t\tissueSuitability: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tlevel: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tenum: [\"high\", \"medium\", \"low\"],\n\t\t\t\t\t\t\t\tdescription: \"Contribution opportunity level\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\treasons: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Reasons for the level\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"level\", \"reasons\"]\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"issueTitle\", \"issueURL\", \"issueDescription\", \"issueSuitability\"]\n\t\t\t},\n\t\t\tdescription: \"Top 3-5 suitable issues\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\", \"issues\"]\n};\nreturn issueAnalysisOutputSchema"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -510,7 +412,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"High\", \"Medium\", \"Low\"],\n\t\t\tdescription: \"High | Medium | Low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"en\", \"ko\", \"ja\", \"zh\", \"es\", \"fr\", \"de\", \"ru\", \"ar\", \"pt\"],\n\t\t\tdescription: \"Language code like 'ko'\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
+        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"High\", \"Medium\", \"Low\"],\n\t\t\tdescription: \"High | Medium | Low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -524,50 +426,6 @@
     },
     {
       "parameters": {
-        "model": "={{ $('Get Free Models').item.json.issueRankMainModel }}",
-        "options": {
-          "timeout": 60000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        2000,
-        896
-      ],
-      "id": "6240ae61-9e97-42fe-bab2-4f7a20538c74",
-      "name": "Issue Analysis Main Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').item.json.issueRankFallbackModel }}",
-        "options": {
-          "timeout": 60000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1872,
-        896
-      ],
-      "id": "559b2012-03b1-4fa2-ab03-55198018503d",
-      "name": "Issue Analysis Fallback Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "schemaType": "manual",
         "inputSchema": "={{ $json.toJsonString() }}",
         "autoFix": true
@@ -575,99 +433,14 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1600,
-        832
+        1696,
+        816
       ],
       "id": "35b3b1ce-1f0d-4095-8cce-986c5638ad97",
-      "name": "Issue Analysis Structured Output Parser"
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').item.json.issueRankParserModel }}",
-        "options": {
-          "timeout": 60000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1664,
-        1024
-      ],
-      "id": "cd1fb83f-bc23-4555-a2f3-fb5440879d41",
-      "name": "Issue Analysis Parser Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').first().json.titleGeneratorMainModel }}",
-        "options": {
-          "timeout": 50000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        3920,
-        912
-      ],
-      "id": "77793cfd-a608-4baa-b360-60292773a919",
-      "name": "Title Generator Main Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').first().json.titleGeneratorFallbackModel }}",
-        "options": {
-          "timeout": 50000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        3776,
-        912
-      ],
-      "id": "d00d9e5e-98d0-4801-a82b-2418000dcf8b",
-      "name": "Title Generator Fallback Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "={{ $('Get Free Models').first().json.titleGeneratorParserModel }}",
-        "options": {
-          "timeout": 50000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        3568,
-        1024
-      ],
-      "id": "6cf8ed5a-edd0-455c-98a6-98efeb46c056",
-      "name": "Title Generator Parser Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
+      "name": "Issue Analysis Structured Output Parser",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
@@ -682,7 +455,11 @@
         896
       ],
       "id": "008e4a4e-08f4-4884-b2b2-4bac7d672f0b",
-      "name": "Deepwiki Structured Output Parser"
+      "name": "Deepwiki Structured Output Parser",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 3
     },
     {
       "parameters": {
@@ -693,15 +470,17 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        3536,
-        848
+        3520,
+        880
       ],
       "id": "dd67528b-5bb7-4c62-9ee0-f1278a678163",
-      "name": "Title Generator Structured Output Parser"
+      "name": "Title Generator Structured Output Parser",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
     },
     {
       "parameters": {
-        "jsCode": "return {\n\t\t\ttitle: \"newsletter_title_output\",\n\t\t\tdescription: \"Generated newsletter title based on GitHub issue\",\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\t\ttranslationLanguageCode: {\n\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\tenum: [\"en\", \"ko\", \"ja\", \"zh\", \"es\", \"fr\", \"de\", \"ru\", \"ar\", \"pt\"],\n\t\t\t\t\t\t\tdescription: \"Language code\"\n\t\t\t\t\t},\n\t\t\t\t\ttitle: {\n\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\tdescription: \"Catchy newsletter title with emoji, translated to target language\"\n\t\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"translationLanguageCode\", \"title\"]\n\t};"
+        "jsCode": "return {\n\t\ttitle: \"newsletter_title_output\",\n\t\tdescription: \"Generated newsletter title based on GitHub issue\",\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\t\ttranslationLanguageCode: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Language code\"\n\t\t\t\t},\n\t\t\t\ttitle: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Catchy newsletter title with emoji, translated to target language\"\n\t\t\t\t}\n\t\t},\n\t\trequired: [\"translationLanguageCode\", \"title\"]\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -712,6 +491,214 @@
       "id": "7de65c31-96a4-4248-9159-61f2e398c227",
       "name": "Title Generator Schema",
       "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "code": {
+          "supplyData": {
+            "code": "const workflowStaticData = $getWorkflowStaticData('global');\nconst { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;\nreturn mainModel;"
+          }
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "ai_languageModel"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        2016,
+        992
+      ],
+      "id": "b072d8ad-e369-4409-9886-caf92e3f7d05",
+      "name": "Resilient LLM"
+    },
+    {
+      "parameters": {
+        "batchSize": "=1",
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1808,
+        1136
+      ],
+      "id": "9e6191bd-3a67-4273-9c91-bbd3bc235bc0",
+      "name": "Loop Over Items",
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "={{ $('Get Free Models').item.json.id }}",
+        "options": {
+          "timeout": 40000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2304,
+        1632
+      ],
+      "id": "7cf01208-a2b9-4d14-9fe8-3ac32e9f62e5",
+      "name": "Free Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "code": {
+          "execute": {
+            "code": "const tmp = $('Loop Over Items').context[\"currentRunIndex\"];\nconst aiLanguageModel = await this.getInputConnectionData('ai_languageModel', 0);\nreturn aiLanguageModel"
+          }
+        },
+        "inputs": {
+          "input": [
+            {
+              "type": "ai_languageModel",
+              "maxConnections": 1,
+              "required": true
+            },
+            {
+              "type": "main",
+              "maxConnections": 1,
+              "required": true
+            }
+          ]
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "main"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        1376
+      ],
+      "id": "368290e2-5226-4e0b-8fb3-f6c9b7e392f7",
+      "name": "LangChain Code"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2128,
+        1120
+      ],
+      "id": "d68d5584-0535-4a4e-adbc-45f5e0be7006",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "code": {
+          "supplyData": {
+            "code": "const workflowStaticData = $getWorkflowStaticData('global');\n    const { mainModel, _otherModels } = workflowStaticData.ModelSelector.allModels;\nreturn mainModel;"
+          }
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "ai_languageModel"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        2976,
+        992
+      ],
+      "id": "2364f251-1fd0-492d-8ddc-351202f27810",
+      "name": "Resilient LLM1"
+    },
+    {
+      "parameters": {
+        "code": {
+          "supplyData": {
+            "code": "const workflowStaticData = $getWorkflowStaticData('global');\n    const { mainModel, _otherModels } = workflowStaticData.ModelSelector.allModels;\nreturn mainModel;"
+          }
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "ai_languageModel"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        1040
+      ],
+      "id": "3936231e-552d-4c04-aec9-cf476c856554",
+      "name": "Resilient LLM2"
+    },
+    {
+      "parameters": {
+        "code": {
+          "execute": {
+            "code": "class ModelSelector {\n\tconstructor(aiLanguageModels) {\n\t\tthis.aiLanguageModels = aiLanguageModels;\n\t\tthis.lastUsedMainModel = null;\n\t}\n\n\tget allModels() {\n\t\tconst candidates = this.getOtherModels(this.lastUsedMainModel);\n\t\tconst mainModel = candidates[this.getRandomNum(candidates.length)];\n\t\tthis.lastUsedMainModel = mainModel;\n\t\treturn { mainModel, otherModels: this.getOtherModels(mainModel) };\n\t}\n\n\tgetOtherModels(mainModel) {\n\t\treturn mainModel ? \n\t\t\tthis.aiLanguageModels.filter(data => data.model != mainModel.model) : \n\t\t\tthis.aiLanguageModels;\n\t}\n\n\tgetRandomNum(length) {\n\t\treturn Math.floor(Math.random() * length);\n\t}\n}\n\nconst workflowStaticData = $getWorkflowStaticData('global');\nconst aiLanguageModels = $('Loop Over Items').all().map(data => data.json);\nworkflowStaticData.ModelSelector = new ModelSelector(aiLanguageModels)\n\nreturn workflowStaticData"
+          }
+        },
+        "inputs": {
+          "input": [
+            {
+              "type": "main",
+              "maxConnections": 1
+            }
+          ]
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "main"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        1120
+      ],
+      "id": "50cfc1be-2973-49f3-b628-e018dbbff55f",
+      "name": "ModelSelector"
+    },
+    {
+      "parameters": {
+        "jsCode": "const requiredModelLength = 20;\nvar freeModels = [];\nvar requiredModels = [];\nfor (const item of $input.first().json.data) {\n\tif (item.pricing.prompt === \"0\" && item.pricing.completion === \"0\") {\n\t\tfreeModels.push(item)\n\t}\n}\nfreeModels.sort((a, b) => b.created - a.created)\nArray.from({ length: requiredModelLength }).forEach((_item, index) => {\n\trequiredModels.push({id : freeModels[index % freeModels.length].id});\n});\nreturn requiredModels"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        592
+      ],
+      "id": "49b8be5c-0644-4397-8212-298402468779",
+      "name": "Get Free Models"
     }
   ],
   "pinData": {},
@@ -787,17 +774,6 @@
         ]
       ]
     },
-    "Get Free Models": {
-      "main": [
-        [
-          {
-            "node": "Issue Analysis Schema",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "convert MJML to HTML": {
       "main": [
         [
@@ -853,39 +829,6 @@
         ]
       ]
     },
-    "Deepwiki Fallback Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Deepwiki Langchain agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Deepwiki Main Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Deepwiki Langchain agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Deepwiki Parser Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Deepwiki Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Split Out": {
       "main": [
         [
@@ -919,78 +862,12 @@
         ]
       ]
     },
-    "Issue Analysis Main Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Analysis Langchain Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Issue Analysis Fallback Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Analysis Langchain Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Issue Analysis Structured Output Parser": {
       "ai_outputParser": [
         [
           {
             "node": "Issue Analysis Langchain Agent",
             "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Issue Analysis Parser Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Analysis Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Title Generator Main Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Title Generator Langchain Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Title Generator Fallback Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Title Generator Langchain Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Title Generator Parser Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Title Generator Structured Output Parser",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -1028,13 +905,122 @@
           }
         ]
       ]
+    },
+    "Resilient LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Analysis Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ],
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LangChain Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Free Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "LangChain Code",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LangChain Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "ModelSelector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resilient LLM1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Deepwiki Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resilient LLM2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Generator Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ModelSelector": {
+      "main": [
+        [
+          {
+            "node": "Issue Analysis Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Free Models": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "b176e760-7e16-4cb5-9ac1-833762b620fe",
+  "versionId": "4de9ceed-3728-4ac4-bf81-f8bed41a5a1f",
   "meta": {
     "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96",
     "templateCredsSetupCompleted": true

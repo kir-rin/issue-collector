@@ -1,4 +1,3 @@
-
 const deepwikiLangchainAgent = async () => {
 	const { createAgent, modelFallbackMiddleware, toolRetryMiddleware } = require("langchain");
 	const { ChatPromptTemplate } = require("@langchain/core/prompts");
@@ -7,9 +6,8 @@ const deepwikiLangchainAgent = async () => {
 	const { ToolNode } = require("@langchain/langgraph/prebuilt");
 	const { MultiServerMCPClient } = require("@langchain/mcp-adapters");
 
-	const llmModel = await this.getInputConnectionData('ai_languageModel', 0);
-	const mainModel = llmModel[0];
-	const fallbackModel = llmModel[1];
+	const workflowStaticData = $getWorkflowStaticData('global');
+  const { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;
 
 	const mcpClient = new MultiServerMCPClient({  
 		deepwiki: {
@@ -113,7 +111,7 @@ const deepwikiLangchainAgent = async () => {
 	const agent = createAgent({
 		model: mainModel,
 		middleware: [
-			modelFallbackMiddleware(fallbackModel),
+			modelFallbackMiddleware(...otherModels),
 			toolRetryMiddleware({              
 				maxRetries: 3,
 				backoffFactor: 2.0
@@ -186,11 +184,6 @@ module.exports = {
 			{
 				"type": "ai_outputParser",
 				"maxConnections": 1,
-				"required": true
-			},
-			{
-				"type": "ai_languageModel",
-				"maxConnections": 2,
 				"required": true
 			},
 			{
