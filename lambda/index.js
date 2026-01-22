@@ -34,29 +34,38 @@ function executeWorkflow({
 	});
 }
 
-exports.handler = async (event) => {
-	console.log(event);
-	const config = {
-		translation_language: event.translation_language,
-		repo: event.repo,
-		email: event.email,
-		openrouter_api_key: event.openrouter_api_key,
-		n8n_github_access_token: event.n8n_github_access_token,
-		google_app_password: event.google_app_password
-	};
-	await executeWorkflow(config)
-		.then(({ error, stderr, stdout }) => {
-			if (stdout) console.log(`[STDOUT] ${stdout}`);
-			if (stderr) console.error(`[STDERR] ${stderr}`); 
-			if (error) console.error(`[EXEC ERROR] ${error.message}`);
-		})
-    .catch(({ error, stderr, stdout }) => {
-			if (stdout) console.log(`[STDOUT] ${stdout}`);
-			if (stderr) console.error(`[STDERR] ${stderr}`); 
-			if (error) console.error(`[EXEC ERROR] ${error.message}`);
-		});
-	return {                                                                            
-		statusCode: 200,                                                                  
-		body: JSON.stringify({ message: 'Success' })                          
- }; 
-}
+	exports.handler = async (event) => {
+		console.log(event);
+		const config = {
+			translation_language: event.translation_language,
+			repo: event.repo,
+			email: event.email,
+			openrouter_api_key: event.openrouter_api_key,
+			n8n_github_access_token: event.n8n_github_access_token,
+			google_app_password: event.google_app_password
+		};
+
+		try {
+			await executeWorkflow(config)
+				.then(({ error, stderr, stdout }) => {
+					if (stdout) console.log(`[STDOUT] ${stdout}`);
+					if (stderr) console.error(`[STDERR] ${stderr}`);
+					if (error) console.error(`Exec error: ${error.message}`);
+				})
+				.catch(({ error, stderr, stdout }) => {
+					if (stdout) console.log(`[STDOUT] ${stdout}`);
+					if (stderr) console.error(`[STDERR] ${stderr}`);
+					if (error) throw new Error(`Workflow failed: ${error?.message || stderr}`);
+				});
+			return {
+				statusCode: 200,
+				body: JSON.stringify({ message: 'Success' }),
+			};
+		} catch (error) {
+			console.error(`Workflow failed: ${error.message}`);
+			return {
+				statusCode: 500,
+				body: JSON.stringify({ message: 'Workflow execution failed' }),
+			};
+		}
+	}
