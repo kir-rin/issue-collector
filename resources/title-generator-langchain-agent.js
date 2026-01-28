@@ -94,13 +94,14 @@ const titleGeneratorLangchainAgent = async () => {
 	const agent = createAgent({
 		model: mainModel,
 		middleware: [
-			customFallbackMiddleware(...otherModels),
 			modelRetryMiddleware({              
 				maxRetries: 1,
 				backoffFactor: 2.0,
 				initialDelayMs: 20000,
 				jitter: true,
-			})	
+				onFailure: "error",
+			}),
+			customFallbackMiddleware(...otherModels),
 		],
 		systemPrompt: systemPrompt,
 	});
