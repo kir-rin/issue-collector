@@ -20,6 +20,9 @@ Therefore, I wanted to create a newsletter to help people who want to continue c
 ## 📋 Requirements
 - [Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)
 - [Openrouter API key](https://openrouter.ai/settings/keys)
+    - Enable the **Free Endpoint** option in the provider settings  
+([go to settings](https://openrouter.ai/settings/privacy)), as shown in the image below.
+    ![alt text](https://lh3.googleusercontent.com/d/1-5OHqGxm9FRYx91H7rv1SKeHk5_WNdic)
 - [Google App Password](https://myaccount.google.com/apppasswords)
 - Check if the open-source project you are interested in is indexed at `https://deepwiki.com/{owner}/{repo}`
   (e.g. [https://deepwiki.com/vercel/next.js](https://deepwiki.com/vercel/next.js))

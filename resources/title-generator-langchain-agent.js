@@ -1,6 +1,5 @@
 const titleGeneratorLangchainAgent = async () => {
 	const { createAgent, initChatModel, modelRetryMiddleware, createMiddleware } = require("langchain");
-	const { ChatPromptTemplate } = require("@langchain/core/prompts");
 
 	const workflowStaticData = $getWorkflowStaticData('global');
 	const { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;
@@ -19,34 +18,19 @@ const titleGeneratorLangchainAgent = async () => {
 	};
 
 	const userPrompt = `
-				Please create a newsletter title for the issue below.
-
-				### Issue
-				Title: {issueTitle}
-				Body: {issueDescription}
-				Summary: {summary}
-				Analogy: {analogy}
-
-				Output:
-		`;
-	const userPromptTemplate = ChatPromptTemplate.fromMessages([
-		["user", userPrompt]
-	]);
-
-	const systemPrompt = `
+				[ROLE]
 				You are an AI assistant who creates newsletter titles based on GitHub issues.
 
+				[OUTPUT RULES]
 				You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 				"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+				Do not include markdown code blocks in the output.
+				Translate all user-facing string values into ${translationLanguage}. Keep the keys in English.
 
-				Follow this JSON Schema:
+				[JSON SCHEMA]
 				${JSON.stringify(wrappedSchema, null, 2)}
 
-				Rules:
-				- Do not include markdown code blocks in the output.
-				- Translate all user-facing string values into ${translationLanguage}. Keep the keys in English.
-
-				Instructions:
+				[TASK]
 				1. Read the provided GitHub issue.
 				2. Generate a short, catchy newsletter title.
 				3. The title should meet these criteria:
@@ -54,6 +38,17 @@ const titleGeneratorLangchainAgent = async () => {
 						- Be easy for a non-technical audience to understand.
 						- Be fun and intriguing to maximize open rates.
 				4. Translate the final title into ${translationLanguage}.
+
+				[INPUT]
+				Please create a newsletter title for the issue below.
+
+				### Issue
+				Title: ${issue.issueTitle}
+				Body: ${issue.issueDescription}
+				Summary: ${issue.summary}
+				Analogy: ${issue.analogy}
+
+				Output:
 		`;
 	function customFallbackMiddleware(...fallbackModels) {
 		return createMiddleware({
@@ -102,12 +97,10 @@ const titleGeneratorLangchainAgent = async () => {
 				onFailure: "error",
 			}),
 			customFallbackMiddleware(...otherModels),
-		],
-		systemPrompt: systemPrompt,
+		]
 	});
-	const userMessages = await userPromptTemplate.invoke({...issue});
 	const result = await agent.invoke({ 
-		messages: userMessages.messages, 
+		messages: [{ role: "user", content: userPrompt }],
 	});
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
 

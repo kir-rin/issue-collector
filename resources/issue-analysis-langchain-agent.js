@@ -1,6 +1,5 @@
 const issueAnalysisLangchainAgent = async () => {
 	const { createAgent, initChatModel, modelRetryMiddleware, createMiddleware } = require("langchain");
-	const { ChatPromptTemplate } = require("@langchain/core/prompts");
 
 	const workflowStaticData = $getWorkflowStaticData('global');
 	const { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;
@@ -21,32 +20,26 @@ const issueAnalysisLangchainAgent = async () => {
 	};
 
 	const userPrompt = `
-			[ISSUES]
-			{issuesJson}
-
-			[RELEASE]
-			{releaseJson}
-
-			Please analyze the issues and release above. Output the JSON result.
-		`.trim();
-	const userPromptTemplate = ChatPromptTemplate.fromMessages([
-		["user", userPrompt]
-	]);
-
-	const systemPrompt = `
+			[ROLE]
 			You are a 10-year experienced developer with extensive open-source contribution experience.
 
+			[OUTPUT RULES]
 			You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 			"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+			Do not include markdown code blocks in the output.
+			Keep keys in English.
+			Translate all user-facing strings into ${translationLanguage}.
 
-			Follow this JSON Schema:
+			[JSON SCHEMA]
 			${JSON.stringify(wrappedSchema, null, 2)}
 
-			First, summarize the key changes from the latest release (1-3 lines, in ${translationLanguage}).
+			[TASK]
+			1) First, summarize the key changes from the latest release (1-3 lines, in ${translationLanguage}).
+			2) Next, analyze each issue and classify their contribution opportunity level based on the criteria below.
+			3) For each issue, provide level and reasons (2-4 reasons).
+			4) Finally, select the top 3-5 most suitable issues and output as JSON.
 
-			Next, analyze each issue and classify their contribution opportunity level based on:
-
-			[Criteria for good contribution opportunities]
+			[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]
 			1. Issues with detailed and well-written content
 			2. Issues where bug/error logs and reproduction steps are clearly specified
 			3. Issues where the location of suspicious source code has been identified
@@ -55,16 +48,17 @@ const issueAnalysisLangchainAgent = async () => {
 			6. Issues with "good first issue" label (no "blocked" or "wait-for-triage" labels)
 			7. Issues without an existing PR
 
-			For each issue, provide:
+			[OUTPUT FORMAT]
 			- level: "high" | "medium" | "low"
 			- reasons: array of 2-4 reasons explaining the level
+			- Output JSON only, no extra text
 
-			Finally, select the top 3-5 most suitable issues and output as JSON.
+			[INPUT]
+			[ISSUES]
+			${JSON.stringify(issues, null, 2)}
 
-			Rules:
-			- Translate all user-facing strings into ${translationLanguage}
-			- Keep keys in English
-			- Do not include markdown code blocks in the output
+			[RELEASE]
+			${JSON.stringify(release)}
 		`.trim();
 
 	function customFallbackMiddleware(...fallbackModels) {
@@ -114,16 +108,11 @@ const issueAnalysisLangchainAgent = async () => {
 				onFailure: "error",
 			}),
 			customFallbackMiddleware(...otherModels),
-		],
-		systemPrompt: systemPrompt,
+		]
 	});
 
-	const userMessages = await userPromptTemplate.invoke({ 
-		issuesJson: JSON.stringify(issues, null, 2),
-		releaseJson: JSON.stringify(release)
-	});
 	const result = await agent.invoke({ 
-		messages: userMessages.messages, 
+		messages: [{ role: "user", content: userPrompt }],
 	});
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
 

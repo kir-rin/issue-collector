@@ -1,6 +1,5 @@
 const deepwikiLangchainAgent = async () => {
 	const { createAgent, initChatModel, modelRetryMiddleware, createMiddleware } = require("langchain");
-	const { ChatPromptTemplate } = require("@langchain/core/prompts");
 	const { AIMessage } = require("@langchain/core/messages");
 	const { StateGraph, START, END, Annotation, Send } = require("@langchain/langgraph");
 	const { ToolNode } = require("@langchain/langgraph/prebuilt");
@@ -31,31 +30,31 @@ const deepwikiLangchainAgent = async () => {
 		required: ["output"]
 	};
 
-	const userPrompt = `
-		DeepWiki Analysis:
-		{deepwikiResponse}
-
-		Extract and return ONLY a JSON object following the exact schema. No markdown, no code blocks, just raw JSON.
-		Preserve the full length and content of the original text rather than summarizing
-	`;
-
-	const systemPrompt = `
+	const buildUserPrompt = (deepwikiResponse) => `
+		[ROLE]
 		You are an AI assistant that processes DeepWiki GitHub issue analysis.
 		
+		[OUTPUT RULES]
 		You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 		"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
+		Do not include markdown code blocks in the output.
+		Output ONLY the JSON object. No additional text.
 
-		Follow this JSON Schema:
+		[JSON SCHEMA]
 		${JSON.stringify(wrappedSchema, null, 2)}
 
-		Requirements:
+		[TASK]
+		Extract and return ONLY a JSON object following the exact schema.
+		Preserve the full length and content of the original text rather than summarizing.
+
+		[REQUIREMENTS]
 		- All content must be in "${translationLanguage}"
 		- translationLanguageCode should be "${translationLanguage}"
 		- deepwikiLink must start with https://deepwiki.com/
 		- technicalDifficulty.level must be one of: High, Medium, Low
 		- keyword should contain 1-5 relevant keywords
 
-		Example output:
+		[EXAMPLE OUTPUT]
 		{
 			"output": {
 				"translationLanguageCode": "en",
@@ -78,11 +77,14 @@ const deepwikiLangchainAgent = async () => {
 			}
 		}
 
-		Output ONLY the JSON object. No additional text.
+		[OUTPUT FORMAT]
+		- Return JSON only
+		- No extra text
+
+		[INPUT]
+		DeepWiki Analysis:
+		${deepwikiResponse}
 	`;
-	const userPromptTemplate = ChatPromptTemplate.fromMessages([
-		["user", userPrompt]
-	]);
 
 	async function deepwikiToolNode({ issue }) {
 		const toolCall = {
@@ -158,16 +160,13 @@ const deepwikiLangchainAgent = async () => {
 				onFailure: "error",
 			}),
 			customFallbackMiddleware(...otherModels),
-		],
-		systemPrompt: systemPrompt,
+		]
 	});
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
 	async function reasonNode({ deepwikiResponse, issueURL }) {
-		const userMessages = await userPromptTemplate.invoke({ 
-			deepwikiResponse: deepwikiResponse,
-		});
+		const userPrompt = buildUserPrompt(deepwikiResponse);
 		const reasonResult = await agent.invoke({ 
-			messages: userMessages.messages, 
+			messages: [{ role: "user", content: userPrompt }],
 		});
 		const aiMessage = reasonResult.messages.findLast(m => m.type === "ai")?.content; 
 		const parsedMessage = await outputParser.parse(aiMessage);	
