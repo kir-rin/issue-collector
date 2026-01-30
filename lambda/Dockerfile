@@ -5,10 +5,10 @@ RUN dnf install -y sqlite npm
 COPY package*.json .
 RUN npm ci
 
-ENV N8N_LOG_LEVEL=error                                              
-ENV NODE_FUNCTION_ALLOW_EXTERNAL=mjml                                
+ENV NODE_ENV=prod
 ENV N8N_USER_FOLDER=/tmp
 
+COPY .env.local ${LAMBDA_TASK_ROOT}/.env
 COPY lambda/index.js n8n.json ${LAMBDA_TASK_ROOT}
 COPY scripts/ ${LAMBDA_TASK_ROOT}/scripts/
 COPY resources/ ${LAMBDA_TASK_ROOT}/resources/
