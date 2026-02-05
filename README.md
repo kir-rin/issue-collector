@@ -59,6 +59,4 @@ Recommended for regular, scheduled newsletters without manual effort.
 
 ## 🙏 Acknowledgements
 - [contribution-issue-collector](https://github.com/KumJungMin/contribution-issue-collector)
-
-## ✨ Future Steps
-- A public site for subscribing to the newsletter is ongoing and will be released in a couple of weeks!
+- [gitdiagram](https://github.com/ahmedkhaleel2004/gitdiagram)
