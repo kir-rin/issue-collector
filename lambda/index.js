@@ -17,10 +17,10 @@ function executeWorkflow({
 	};
 	return new Promise((resolve, reject) => {
 		execFile('./scripts/entrypoint.sh', [], options, (error, stdout, stderr) => {
-			if (stderr || error) {
-				reject({ error, stderr, stdout });
+			if (error) {
+				reject({ error, stdout, stderr });
 			} else {
-				resolve({ error, stderr, stdout }); 
+				resolve({ stdout, stderr }); 
 			}
 		});
 	});
@@ -34,15 +34,16 @@ exports.handler = async (event) => {
 		email: event.email,
 	};
 		await executeWorkflow(config)
-			.then(({ error, stderr, stdout }) => {
+			.then(({ stderr, stdout }) => {
 				if (stdout) console.log(`[STDOUT] ${stdout}`);
-				if (stderr) console.error(`[STDERR] ${stderr}`);
-				if (error) throw new Error(`Workflow failed: ${error?.message || stderr}`);
+				if (stderr) console.log(`[STDERR] ${stderr}`);
 			})
-			.catch((err) => {
-				console.error(`[STDOUT] ${err.stdout || ''}`);
-				console.error(`[STDERR] ${err.stderr || ''}`);
-				console.error(`Workflow failed: ${err.error?.message || err}`);
+			.catch(({ error, stderr, stdout }) => {
+				console.log(`[STDOUT] ${stdout || ''}`);
+				console.log(`[STDERR] ${stderr || ''}`);
+				console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+  			console.error('Stack:', error.stack);
+  			console.error('Message:', error.message);
 				throw err;
 			});
 		return {
