@@ -11,8 +11,5 @@
     "n8n": "^2.0.0",
     "zod": "3.x"
 	},
-	"_note_zod_pin": "n8n uses zod-class → requires Zod v3.x (no v4 support)",
-	"scripts": {
-		"import" : "node -r dotenv/config scripts/import-workflow.js"
-	}
+	"_note_zod_pin": "n8n uses zod-class → requires Zod v3.x (no v4 support)"
 }
