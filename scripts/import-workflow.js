@@ -28,7 +28,7 @@ function stripQuotes(value) {
 }
 
 function createCredentialsFile(credPath) {
-  const googleAppPasswordClean = stripQuotes(process.env.GOOGLE_APP_PASSWORD || '');
+  const googleAppPasswordClean = stripQuotes(process.env.GOOGLE_APP_PASSWORD);
   
   const credentials = [
     {
@@ -36,7 +36,7 @@ function createCredentialsFile(credPath) {
       "name": "OpenRouter account",
       "type": "openRouterApi",
       "data": {
-        "apiKey": process.env.OPENROUTER_API_KEY || ''
+        "apiKey": process.env.OPENROUTER_API_KEY
       }
     },
     {
@@ -45,7 +45,7 @@ function createCredentialsFile(credPath) {
       "type": "httpHeaderAuth",
       "data": {
         "name": "Authorization",
-        "value": `Bearer ${process.env.N8N_GITHUB_ACCESS_TOKEN || ''}`
+        "value": `Bearer ${process.env.N8N_GITHUB_ACCESS_TOKEN}`
       }
     },
     {
@@ -53,7 +53,7 @@ function createCredentialsFile(credPath) {
       "name": "SMTP account",
       "type": "smtp",
       "data": {
-        "user": process.env.EMAIL || '',
+        "user": process.env.EMAIL,
         "password": googleAppPasswordClean,
         "host": "smtp.gmail.com",
         "port": 465,
@@ -63,6 +63,21 @@ function createCredentialsFile(credPath) {
       }
     }
   ];
+
+	if (process.env.N8N_AWS_ACCESS_KEY_ID && process.env.N8N_AWS_SECRET_ACCESS_KEY) {
+		credentials.push(
+			{
+				"id": "aws",
+				"name": "AWS (IAM) account",
+				"type": "aws",
+				"data" : {
+					"region": "ap-northeast-2",
+					"accessKeyId" : process.env.N8N_AWS_ACCESS_KEY_ID,
+					"secretAccessKey" : process.env.N8N_AWS_SECRET_ACCESS_KEY,
+				}
+			}
+		)
+	}
 
   fs.writeFileSync(credPath, JSON.stringify(credentials, null, 2), 'utf8');
   console.log(`✓ 자격 증명 파일 생성: ${credPath}`);

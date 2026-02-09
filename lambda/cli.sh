@@ -8,7 +8,7 @@ case "$1" in
 		docker buildx build --platform linux/arm64 --provenance=false -f lambda/Dockerfile.local -t docker-image:test .
     ;;
   run)
-		docker run --platform linux/arm64 -p 9000:8080 --rm --name ic docker-image:test 
+		docker run --platform linux/arm64 -p 9000:8080 -p 5678:5678 --rm --name ic docker-image:test 
     ;;
   test)
 		curl "http://localhost:9000/2015-03-31/functions/function/invocations" -d @payload.json                  
