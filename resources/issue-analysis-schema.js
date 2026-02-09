@@ -48,7 +48,7 @@ const issueAnalysisSchema = () => {
 							pattern: `^https://github.com/${owner}/${name}/issues/\\d+$`,
 							description: "Issue URL"
 						},
-						issueDescription: { type: "string", description: "Issue description" },
+						issueDescription: { type: "string", description: "A 1-2 line concise summary of the original issue description capturing the core problem or feature request (NOT a verbatim copy)" },
 						issueSuitability: {
 							type: "object",
 							properties: {

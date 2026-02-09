@@ -35,9 +35,10 @@ const issueAnalysisLangchainAgent = async () => {
 
 			[TASK]
 			1) First, summarize the key changes from the latest release (1-3 lines, in ${translationLanguage}).
-			2) Next, analyze each issue and classify their contribution opportunity level based on the criteria below.
-			3) For each issue, provide level and reasons (2-4 reasons).
-			4) Finally, select the top 3-5 most suitable issues and output as JSON.
+			2) For each issue, analyze and summarize the issueDescription in 1-2 concise lines (in ${translationLanguage}), capturing the core problem or feature request - do NOT copy the original description verbatim.
+			3) Classify each issue's contribution opportunity level based on the criteria below.
+			4) For each issue, provide level and reasons (2-4 reasons).
+			5) Finally, select the top 3-5 most suitable issues and output as JSON.
 
 			[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]
 			1. Issues with detailed and well-written content
