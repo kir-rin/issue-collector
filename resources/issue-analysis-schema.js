@@ -35,7 +35,7 @@ const issueAnalysisSchema = () => {
 					description: "Array of release details (maximum 3 items)"
 					}
 				},
-				required: ["name", "details"]
+				required: ["details"]
 			},
 			issues: {
 				type: "array",

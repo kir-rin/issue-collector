@@ -1,10 +1,8 @@
 const issueAnalysisLangchainAgent = async () => {
-	const { createAgent, initChatModel, modelRetryMiddleware, createMiddleware } = require("langchain");
-
-	const workflowStaticData = $getWorkflowStaticData('global');
-	const { mainModel, otherModels } = workflowStaticData.ModelSelector.allModels;
+	const { createAgent, createMiddleware, modelRetryMiddleware } = require("langchain");
 
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
+	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
 
 	const repositoryInfo = $('Get Issue From Github').item.json.data.repository;
 	const issues = repositoryInfo.issues.nodes;
@@ -62,64 +60,43 @@ const issueAnalysisLangchainAgent = async () => {
 			${JSON.stringify(release)}
 		`.trim();
 
-	function customFallbackMiddleware(...fallbackModels) {
-		return createMiddleware({
-			name: "customFallbackMiddleware",
-			wrapModelCall: async (request, handler) => {
-				try {
-					const response = await handler(request);
-					if (!response.content?.trim()) {
-						throw new Error("The AI model's response content is empty or contains only whitespace.")
-					}
-					return response;
-				} catch (error) {
-					for (let i = 0; i < Math.min(3, fallbackModels.length); i++) {
-						try {
-							const fallbackModel = fallbackModels[i];
-							const model =
-								typeof fallbackModel === "string"
-								? await initChatModel(fallbackModel)
-								: fallbackModel;
-
-							const response = await handler({
-								...request,
-								model,
-							});
-							if (response.content?.trim()) {
-								return response;
-							}
-						} catch (fallbackError) {
-							if (i === fallbackModels.length - 1) {
-								throw fallbackError;
-							}
-						}
-					}
-					throw error;
+	const validateResponseMiddleware = createMiddleware({
+		name: "validateResponseMiddleware",
+		afterModel: {
+			canJumpTo: ["model"],
+			hook: (state) => {
+				const lastMessage = state.messages[state.messages.length - 1];
+				if (!lastMessage.content?.trim()) {
+					return { jumpTo: "model" }
 				}
-			}});
-	}
+				return;
+			}
+		}
+	});
 	const agent = createAgent({
-		model: mainModel,
+		model: languageModel,
 		middleware: [
+			validateResponseMiddleware,
 			modelRetryMiddleware({              
-				maxRetries: 1,
+				maxRetries: 2,
 				backoffFactor: 2.0,
 				initialDelayMs: 20000,
 				jitter: true,
 				onFailure: "error",
 			}),
-			customFallbackMiddleware(...otherModels),
 		]
 	});
-
 	const result = await agent.invoke({ 
 		messages: [{ role: "user", content: userPrompt }],
 	});
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
 
 	const parsedMessage = await outputParser.parse(aiMessage)
-	parsedMessage.output.latestRelease.url = release.url
-	parsedMessage.output.latestRelease.name = release.name
+	parsedMessage.output.latestRelease = {
+		...parsedMessage.output.latestRelease,
+		url: release.url,
+		name: release.name,
+	};
 	return [parsedMessage.output];
 }
 
@@ -140,6 +117,11 @@ module.exports = {
 			},
 			{
 				"type": "main",
+				"maxConnections": 1,
+				"required": true
+			},
+			{
+				"type": "ai_languageModel",
 				"maxConnections": 1,
 				"required": true
 			}
