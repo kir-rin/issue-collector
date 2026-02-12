@@ -18,6 +18,14 @@ const issueAnalysisLangchainAgent = async () => {
 		required: ["output"]
 	};
 
+	const getLanguageDisplayName = (code) => {
+		try {
+			return new Intl.DisplayNames([code], { type: 'language' }).of(code);
+		} catch {
+			return '';
+		}
+	};
+
 	const userPrompt = `
 			[ROLE]
 			You are a 10-year experienced developer with extensive open-source contribution experience.
@@ -27,14 +35,17 @@ const issueAnalysisLangchainAgent = async () => {
 			"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
 			Do not include markdown code blocks in the output.
 			Keep keys in English.
-			Translate all user-facing strings into ${translationLanguage}.
+			Translate all user-facing strings into ___TRANSLATION_LANGUAGE___.
+
+		[TRANSLATE EXAMPLE]
+		___TRANSLATION_LANGUAGE___ -> ${getLanguageDisplayName("___TRANSLATION_LANGUAGE___")}
 
 			[JSON SCHEMA]
 			${JSON.stringify(wrappedSchema, null, 2)}
 
 			[TASK]
-			1) First, summarize the key changes from the latest release (1-3 lines, in ${translationLanguage}).
-			2) For each issue, analyze and summarize the issueDescription in 1-2 concise lines (in ${translationLanguage}), capturing the core problem or feature request - do NOT copy the original description verbatim.
+		1) First, summarize the key changes from the latest release (1-3 lines, in ___TRANSLATION_LANGUAGE___).
+		2) For each issue, analyze and summarize the issueDescription in 1-2 concise lines (in ___TRANSLATION_LANGUAGE___), capturing the core problem or feature request - do NOT copy the original description verbatim.
 			3) Classify each issue's contribution opportunity level based on the criteria below.
 			4) For each issue, provide level and reasons (2-4 reasons).
 			5) Finally, select the top 3-5 most suitable issues and output as JSON.
@@ -116,7 +127,7 @@ module.exports = {
 		"execute" : {
 			"code" : issueAnalysisLangchainAgent
 			.toString()
-			.replace(/{translationLanguage}/g, process.env.TRANSLATION_LANGUAGE)
+			.replace(/___TRANSLATION_LANGUAGE___/g, process.env.TRANSLATION_LANGUAGE)
 		}
 	},
 	"inputs": {

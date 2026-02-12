@@ -17,6 +17,14 @@ const titleGeneratorLangchainAgent = async () => {
 		required: ["output"]
 	};
 
+	const getLanguageDisplayName = (code) => {
+		try {
+			return new Intl.DisplayNames([code], { type: 'language' }).of(code);
+		} catch {
+			return '';
+		}
+	};
+
 	const userPrompt = `
 				[ROLE]
 				You are an AI assistant who creates newsletter titles based on GitHub issues.
@@ -25,7 +33,10 @@ const titleGeneratorLangchainAgent = async () => {
 				You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
 				"JSON Schema" is a declarative language that allows you to annotate and validate JSON documents.
 				Do not include markdown code blocks in the output.
-				Translate all user-facing string values into ${translationLanguage}. Keep the keys in English.
+				Translate all user-facing string values into ___TRANSLATION_LANGUAGE___. Keep the keys in English.
+
+				[TRANSLATE EXAMPLE]
+				___TRANSLATION_LANGUAGE___ -> ${getLanguageDisplayName("___TRANSLATION_LANGUAGE___")}
 
 				[JSON SCHEMA]
 				${JSON.stringify(wrappedSchema, null, 2)}
@@ -37,7 +48,7 @@ const titleGeneratorLangchainAgent = async () => {
 						- Include a relevant emoji at the beginning.
 						- Be easy for a non-technical audience to understand.
 						- Be fun and intriguing to maximize open rates.
-				4. Translate the final title into ${translationLanguage}.
+				4. Translate the final title into ___TRANSLATION_LANGUAGE___.
 
 				[INPUT]
 				Please create a newsletter title for the issue below.
@@ -100,7 +111,7 @@ module.exports = {
 		"execute" : {
 			"code" : titleGeneratorLangchainAgent
 			.toString()
-			.replace(/{translationLanguage}/g, process.env.TRANSLATION_LANGUAGE)
+			.replace(/___TRANSLATION_LANGUAGE___/g, process.env.TRANSLATION_LANGUAGE)
 		}
 	},
 	"inputs": {

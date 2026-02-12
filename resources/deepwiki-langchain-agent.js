@@ -30,6 +30,14 @@ const deepwikiLangchainAgent = async () => {
 		required: ["output"]
 	};
 
+	const getLanguageDisplayName = (code) => {
+		try {
+			return new Intl.DisplayNames([code], { type: 'language' }).of(code);
+		} catch {
+			return '';
+		}
+	};
+
 	const buildUserPrompt = (deepwikiResponse) => `
 		[ROLE]
 		You are an AI assistant that processes DeepWiki GitHub issue analysis.
@@ -40,6 +48,9 @@ const deepwikiLangchainAgent = async () => {
 		Do not include markdown code blocks in the output.
 		Output ONLY the JSON object. No additional text.
 
+		[TRANSLATE EXAMPLE]
+		___TRANSLATION_LANGUAGE___ -> ${getLanguageDisplayName("___TRANSLATION_LANGUAGE___")}
+
 		[JSON SCHEMA]
 		${JSON.stringify(wrappedSchema, null, 2)}
 
@@ -48,8 +59,8 @@ const deepwikiLangchainAgent = async () => {
 		Preserve the full length and content of the original text rather than summarizing.
 
 		[REQUIREMENTS]
-		- All content must be in "${translationLanguage}"
-		- translationLanguageCode should be "${translationLanguage}"
+		- All content must be in "___TRANSLATION_LANGUAGE___"
+		- translationLanguageCode should be "___TRANSLATION_LANGUAGE___"
 		- deepwikiLink must start with https://deepwiki.com/
 		- technicalDifficulty.level must be one of: High, Medium, Low
 		- keyword should contain 1-5 relevant keywords
@@ -217,7 +228,7 @@ module.exports = {
 		"execute" : {
 			"code" : deepwikiLangchainAgent
 				.toString()
-				.replace(/{translationLanguage}/g, process.env.TRANSLATION_LANGUAGE)
+				.replace(/___TRANSLATION_LANGUAGE___/g, process.env.TRANSLATION_LANGUAGE)
 		}
 	},
 	"inputs": {
