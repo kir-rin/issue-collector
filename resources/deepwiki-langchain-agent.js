@@ -111,6 +111,15 @@ const deepwikiLangchainAgent = async () => {
 		}]};
 	}
 
+	const jitterMiddleware = createMiddleware({
+		name: "jitterMiddleware",
+		wrapModelCall: async (request, handler) => {
+			const delay = Math.floor(Math.random() * 100);
+			await new Promise(resolve => setTimeout(resolve, delay));
+			return handler(request);
+		}
+	});
+
 	const validateResponseMiddleware = createMiddleware({
 		name: "validateResponseDeepwikiMiddleware",
 		afterModel: {
@@ -137,6 +146,7 @@ const deepwikiLangchainAgent = async () => {
 				jitter: true,
 				onFailure: "error",
 			}),
+			jitterMiddleware,
 		]
 	});
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
@@ -178,7 +188,7 @@ const deepwikiLangchainAgent = async () => {
 	});
 	const workflow = new StateGraph(MessagesState)
 		.addNode("deepwikiTool", deepwikiToolNode)
-		.addNode("reason", reasonNode, { retryPolicy: { maxAttempts: 3, initialInterval: 3.0, retryOn: (error) => error instanceof TimeoutError } })
+		.addNode("reason", reasonNode, { retryPolicy: { maxAttempts: 3, retryOn: (error) => error instanceof TimeoutError } })
 		.addConditionalEdges(START, (_state) => {
 			return issues.map((issue) => new Send("deepwikiTool", { issue }));
 		})
