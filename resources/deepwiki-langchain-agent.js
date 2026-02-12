@@ -133,18 +133,33 @@ const deepwikiLangchainAgent = async () => {
 			modelRetryMiddleware({              
 				maxRetries: 2,
 				backoffFactor: 2.0,
-				initialDelayMs: 20000,
+				initialDelayMs: 5 * 1000,
 				jitter: true,
 				onFailure: "error",
 			}),
 		]
 	});
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
+
+	class TimeoutError extends Error {
+		constructor(message = 'Operation timed out') {
+			super(message);
+			this.name = 'TimeoutError';
+		}
+	}
+
+	function timeoutPromise(ms) {
+		return new Promise((_, reject) => 
+				setTimeout(() => reject(new TimeoutError()), ms)
+		);
+	}
+
 	async function reasonNode({ deepwikiResponse, issueURL }) {
 		const userPrompt = buildUserPrompt(deepwikiResponse);
-		const reasonResult = await agent.invoke({ 
-			messages: [{ role: "user", content: userPrompt }],
-		});
+		const reasonResult = await Promise.race([
+			agent.invoke({ messages: [{ role: "user", content: userPrompt }] }),
+			timeoutPromise(90 * 1000)
+		]);
 		const aiMessage = reasonResult.messages.findLast(m => m.type === "ai")?.content; 
 		const parsedMessage = await outputParser.parse(aiMessage);	
 		parsedMessage.output.issueURL = issueURL
@@ -163,7 +178,7 @@ const deepwikiLangchainAgent = async () => {
 	});
 	const workflow = new StateGraph(MessagesState)
 		.addNode("deepwikiTool", deepwikiToolNode)
-		.addNode("reason", reasonNode)
+		.addNode("reason", reasonNode, { retryPolicy: { maxAttempts: 3, initialInterval: 3.0, retryOn: (error) => error instanceof TimeoutError } })
 		.addConditionalEdges(START, (_state) => {
 			return issues.map((issue) => new Send("deepwikiTool", { issue }));
 		})
