@@ -1,5 +1,6 @@
 const titleGeneratorLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
+	const { traceable } = require("langsmith/traceable");
 
 	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
 
@@ -76,9 +77,18 @@ const titleGeneratorLangchainAgent = async () => {
 			}),
 		]
 	});
-	const result = await agent.invoke({ 
-		messages: [{ role: "user", content: userPrompt }],
-	});
+	const config = $('Get Workflow Run Id').first().json;
+	const result = await traceable(
+		async () => {
+			return await agent.invoke({ 
+				messages: [{ role: "user", content: userPrompt }],
+			});
+		},
+		{ 
+			name: "Title Generation",
+			...config
+		},
+	)();
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
 
 	const parsedMessage = await outputParser.parse(aiMessage)

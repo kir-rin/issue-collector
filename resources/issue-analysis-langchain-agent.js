@@ -1,6 +1,7 @@
 const issueAnalysisLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
-
+	const { traceable } = require("langsmith/traceable");
+	 
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
 	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
 
@@ -87,9 +88,18 @@ const issueAnalysisLangchainAgent = async () => {
 			}),
 		]
 	});
-	const result = await agent.invoke({ 
-		messages: [{ role: "user", content: userPrompt }],
-	});
+	const config = $('Get Workflow Run Id').first().json;
+	const result = await traceable(
+			async () => {
+					return await agent.invoke({ 
+						messages: [{ role: "user", content: userPrompt }],
+					});
+			},
+			{ 
+				name: "Issue Analysis",
+				...config
+			},
+	)();
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
 
 	const parsedMessage = await outputParser.parse(aiMessage)

@@ -26,9 +26,7 @@ jobs:
 
       - name: Run workflow
         env:
-          N8N_LOG_LEVEL: "error"
           N8N_USER_FOLDER: "/tmp"
-          NODE_FUNCTION_ALLOW_EXTERNAL: "mjml"
           TRANSLATION_LANGUAGE: ${{ vars.TRANSLATION_LANGUAGE || 'en-US' }}
           REPO: ${{ vars.REPO }}
           EMAIL: ${{ vars.EMAIL }}

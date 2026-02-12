@@ -1,5 +1,6 @@
 const deepwikiLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
+	const { traceable } = require("langsmith/traceable");
 	const { AIMessage } = require("@langchain/core/messages");
 	const { StateGraph, START, END, Annotation, Send } = require("@langchain/langgraph");
 	const { ToolNode } = require("@langchain/langgraph/prebuilt");
@@ -198,7 +199,16 @@ const deepwikiLangchainAgent = async () => {
 		.addEdge("reason", END)
 		.compile();
 
-	const result = await workflow.invoke({});
+	const config = $('Get Workflow Run Id').first().json;
+	const result = await traceable(
+		async () => {
+			return await workflow.invoke({});
+		},
+		{ 
+			name: "DeepWiki Analysis",
+			...config
+		},
+	)();
 	return result.finalAnswers;
 }
 
