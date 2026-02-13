@@ -72,6 +72,33 @@ const issueAnalysisLangchainAgent = async () => {
 			${JSON.stringify(release)}
 		`.trim();
 
+	class TimeoutError extends Error {
+		constructor(message = 'Operation timed out') {
+			super(message);
+			this.name = 'TimeoutError';
+		}
+	}
+
+	const timeoutMiddleware = (timeout = 90 * 1000) => {
+		const middlewareName = "timeoutMiddleware";
+		return createMiddleware({
+			name: middlewareName,
+			wrapModelCall: async (request, handler) => {
+				let timeoutObj;
+				try {
+					return await Promise.race([
+						handler(request),
+						new Promise((_, reject) => {
+							timeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);
+						})
+					]);
+				} finally {
+					clearTimeout(timeoutObj);
+				}
+			},
+		});
+	};
+
 	const validateResponseMiddleware = createMiddleware({
 		name: "validateResponseMiddleware",
 		afterModel: {
@@ -90,13 +117,14 @@ const issueAnalysisLangchainAgent = async () => {
 		responseFormat: providerStrategy(wrappedSchema),
 		middleware: [
 			validateResponseMiddleware,
-			modelRetryMiddleware({              
+			modelRetryMiddleware({
 				maxRetries: 2,
 				backoffFactor: 2.0,
 				initialDelayMs: 20000,
 				jitter: true,
 				onFailure: "error",
 			}),
+			timeoutMiddleware(120 * 1000),
 		]
 	});
 	const config = $('Get Workflow Run Id').first().json;

@@ -550,7 +550,7 @@
     },
     {
       "parameters": {
-        "model": "openrouter/free",
+        "model": "openrouter/aurora-alpha",
         "options": {
           "timeout": 90000,
           "maxRetries": 0
