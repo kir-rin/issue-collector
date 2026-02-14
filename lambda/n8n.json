@@ -689,11 +689,6 @@
       "main": [
         [
           {
-            "node": "Issue Analysis Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
             "node": "Get Workflow Run Id",
             "type": "main",
             "index": 0
