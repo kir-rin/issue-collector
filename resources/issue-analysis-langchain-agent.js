@@ -54,10 +54,8 @@ const issueAnalysisLangchainAgent = async () => {
 			1. Issues with detailed and well-written content
 			2. Issues where bug/error logs and reproduction steps are clearly specified
 			3. Issues where the location of suspicious source code has been identified
-			4. Issues where the maintainer has confirmed the problem or requested contributions
-			5. Issues directly created by the maintainer
-			6. Issues with "good first issue" label (no "blocked" or "wait-for-triage" labels)
-			7. Issues without an existing PR
+			4. Issues with "good first issue" label (no "blocked" or "wait-for-triage" labels)
+			5. Issues without an existing PR
 
 			[OUTPUT FORMAT]
 			- level: "high" | "medium" | "low"
