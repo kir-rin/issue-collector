@@ -27,11 +27,12 @@ function executeWorkflow({
 }
 
 exports.handler = async (event) => {
-	console.log(event);
+	const data = event.Records ? JSON.parse(event.Records[0].body) : event;
+	console.log(data);
 	const config = {
-		translation_language: event.translation_language,
-		repo: event.repo,
-		email: event.email,
+		translation_language: data.translation_language,
+		repo: data.repo,
+		email: data.email,
 	};
 		await executeWorkflow(config)
 			.then(({ stderr, stdout }) => {
