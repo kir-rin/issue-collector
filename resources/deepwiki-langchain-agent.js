@@ -105,7 +105,7 @@ const deepwikiLangchainAgent = async () => {
 				question: `Here is a GitHub issue.
 					 Title: ${issue.issueTitle}
 					 Body: ${issue.issueDescription}
-					 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`
+					 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`
 			},
 			id: `call_${Date.now()}`,
 			type: "tool"
