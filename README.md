@@ -1,4 +1,4 @@
-![issue-collector](https://github.com/user-attachments/assets/9ba3c7b4-f26f-4d7c-926d-d212c40dfe41)
+![issue-collector](https://github.com/user-attachments/assets/7165b1ef-c5ea-473c-bf87-19ac5790dc00)
 
 # IssueCollector
 Receive a periodic newsletter with curated, contributor-friendly issues from your favorite repositories, for free, using Github Actions and Open Router.
