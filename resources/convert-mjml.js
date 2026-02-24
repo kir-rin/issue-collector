@@ -156,7 +156,7 @@ const convertMJML = function () {
 							<mj-body>
 									<mj-section>
 											<mj-column>
-													<mj-image src="https://lh3.googleusercontent.com/d/1VYyXuiNQOnHCBELXh4_6ZDEoL30x7OQk" width="1000" height="150"/>
+													<mj-image src="https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB" width="1000" height="150"/>
 											</mj-column>
 									</mj-section>
 									<mj-divider  border-width="1px" border-color="#D3D3D3"/> 
