@@ -11,7 +11,9 @@ const deepwikiLangchainAgent = async () => {
 	const mcpClient = new MultiServerMCPClient({  
 		deepwiki: {
 			transport: "http",
-			url: "https://mcp.deepwiki.com/mcp",
+			url: "https://mcp.devin.ai/mcp",
+			headers: {
+        "Authorization": "Bearer ___DEVIN_API_KEY___", }
 		},
 	});
 	const tools = await mcpClient.getTools()
@@ -241,6 +243,7 @@ module.exports = {
 			"code" : deepwikiLangchainAgent
 				.toString()
 				.replace(/___TRANSLATION_LANGUAGE___/g, process.env.TRANSLATION_LANGUAGE)
+				.replace(/___DEVIN_API_KEY___/g, process.env.DEVIN_API_KEY)
 		}
 	},
 	"inputs": {
