@@ -10,6 +10,7 @@
     "marked": "^17.0.3",
     "mjml": "^4.16.1",
     "n8n": "^2.0.0",
+    "playwright": "^1.59.1",
     "zod": "3.x"
   },
   "_note_zod_pin": "n8n uses zod-class → requires Zod v3.x (no v4 support)",
