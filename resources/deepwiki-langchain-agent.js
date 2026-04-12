@@ -105,34 +105,38 @@ How can this issue be resolved, what is its root cause, what is the recommended 
 
 			try {
 				// 환경에 따라 다른 Puppeteer 설정 사용
-				const isLocal = process.env.NODE_ENV !== 'prod';
-				
-				if (isLocal) {
+				const isLambda = ___IS_LAMBDA___;
+
+				if (isLambda) {
+					// Lambda 환경 - @sparticuz/chromium 사용
+					const puppeteer = require("puppeteer-core");
+					const chromium = require("@sparticuz/chromium-min");
+					browser = await puppeteer.launch({
+						args: chromium.args,
+						defaultViewport: chromium.defaultViewport,
+						executablePath: await chromium.executablePath(
+							"https://github.com/Sparticuz/chromium/releases/download/v143.0.4/chromium-v143.0.4-pack.arm64.tar"
+						),
+						headless: true,
+						ignoreHTTPSErrors: true,
+					});
+				} else {
 					// 로컬 개발 환경 - puppeteer가 자동 다운로드한 Chrome 사용
 					const puppeteer = require("puppeteer");
 					browser = await puppeteer.launch({ headless: true });
-				} else {
-					// Lambda 환경 - @sparticuz/chromium 사용
-					const puppeteer = require("puppeteer-core");
-					const chromium = require("@sparticuz/chromium");
-					browser = await puppeteer.launch({
-						args: chromium.args,
-						executablePath: await chromium.executablePath(),
-						headless: chromium.headless,
-					});
 				}
 				
 				const page = await browser.newPage();
 
 				// 1) DeepWiki 페이지로 이동
-				await page.goto(url, { waitUntil: "networkidle0" });
+				await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
 
 				// 2) 질문 입력 textarea가 나타날 때까지 대기
 				await page.waitForSelector(textareaSelector, { timeout: 15000 });
 
 			// 3) 질문 입력 후 Enter (Promise.all로 navigation 대기)
 			await page.type(textareaSelector, question);
-			await page.waitForTimeout(500); // 입력 완료 후 짧은 대기
+			await new Promise(resolve => setTimeout(resolve, 3000)); // 입력 완료 후 짧은 대기
 			
 			// 4) URL이 검색 결과(/search/...)로 바뀔 때까지 대기 (SPA 클라이언트 사이드 라우팅 대응)
 				await Promise.all([
@@ -146,6 +150,7 @@ How can this issue be resolved, what is its root cause, what is the recommended 
 
 				// 5) Devin 답변 본문 컨테이너에서 텍스트 추출
 				await page.waitForSelector(answerSelector, { visible: true, timeout: 60000 });
+				await new Promise(resolve => setTimeout(resolve, 6000));				
 				const element = await page.$(answerSelector);
 				if (element) {
 					answerText = await page.evaluate(el => el.innerText.trim(), element);
@@ -279,7 +284,9 @@ How can this issue be resolved, what is its root cause, what is the recommended 
 		.addNode("deepwikiTool", deepwikiToolNode)
 		.addNode("reason", reasonNode)
 		.addEdge(START, "deepwikiTool")
-		.addEdge("deepwikiTool", "reason")
+		.addConditionalEdges("deepwikiTool", ({ deepwikiResponses }) => {
+				return deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send("reason", { deepwikiResponse, issueURL }));
+		})
 		.addEdge("reason", END)
 		.compile();
 
@@ -303,6 +310,7 @@ module.exports = {
 			"code" : deepwikiLangchainAgent
 				.toString()
 				.replace(/___TRANSLATION_LANGUAGE___/g, process.env.TRANSLATION_LANGUAGE)
+				.replace(/___IS_LAMBDA___/g, process.env.RUNTIME_ENV === 'lambda')
 		}
 	},
 	"inputs": {

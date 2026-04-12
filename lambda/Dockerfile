@@ -5,8 +5,9 @@ RUN dnf install -y sqlite npm
 COPY package*.json .
 RUN npm ci
 
-ENV NODE_ENV=prod
 ENV N8N_USER_FOLDER=/tmp
+ENV CODE_ENABLE_STDOUT=true
+ENV RUNTIME_ENV=lambda
 
 COPY .env.local ${LAMBDA_TASK_ROOT}/.env
 COPY lambda/index.js lambda/n8n.json ${LAMBDA_TASK_ROOT}
