@@ -4,7 +4,7 @@ case "$1" in
 		aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
 		;;
   build)
-		docker images -aq | xargs -r docker rmi
+		docker rmi $(docker images -aq)
 		docker buildx build --platform linux/arm64 --provenance=false -f lambda/Dockerfile.local -t docker-image:test .
     ;;
   run)

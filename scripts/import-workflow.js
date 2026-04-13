@@ -4,12 +4,12 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const { tmpDir, isLambda } = require('./config/temp-dir');
+const { tmpDir } = require('./config/temp-dir');
 const { buildWorkflow } = require('./lib/workflow-builder');
 
 function getRootDir() {
-  if (process.env.RUNTIME_ENV === 'lambda') {
-    console.log('RUNTIME_ENV=lambda, using current directory');
+  if (process.env.NODE_ENV === 'prod') {
+    console.log('NODE_ENV=prod, using current directory');
     return '.';
   }
 
