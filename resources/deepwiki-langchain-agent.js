@@ -1,10 +1,21 @@
 const deepwikiLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
 	const { traceable } = require("langsmith/traceable");
+	const { AIMessage } = require("@langchain/core/messages");
 	const { StateGraph, START, END, Annotation, Send } = require("@langchain/langgraph");
-	const { webkit } = require("playwright");
+	const { ToolNode } = require("@langchain/langgraph/prebuilt");
+	const { MultiServerMCPClient } = require("@langchain/mcp-adapters");
 
 	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
+
+	const mcpClient = new MultiServerMCPClient({  
+		deepwiki: {
+			transport: "http",
+			url: "https://mcp.deepwiki.com/mcp",
+		},
+	});
+	const tools = await mcpClient.getTools()
+	const askQuestionTool = tools.filter(t => t.name === "ask_question")[0];
 
 	const { owner, name } = $('Load Repo Info').item.json;
 	const repoName = `${owner}/${name}`;
@@ -87,86 +98,29 @@ const deepwikiLangchainAgent = async () => {
 	`;
 
 	async function deepwikiToolNode({ issue }) {
-		const url = `https://deepwiki.com/${repoName}`;
-		const textareaSelector = 'textarea[data-deepwiki-input="question"]';
-
-		const question = `Here is a GitHub issue.
-Title: ${issue.issueTitle}
-Body: ${issue.issueDescription}
-How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`;
-
-		let browser;
-		let answerText = "";
-		let finalUrl = "";
-
-		try {
-			browser = await webkit.launch({ headless: true });
-			const context = await browser.newContext();
-			const page = await context.newPage();
-
-			// 1) DeepWiki 페이지로 이동
-			await page.goto(url, { waitUntil: "networkidle" });
-
-			// 2) 질문 입력 textarea가 나타날 때까지 대기
-			await page.waitForSelector(textareaSelector, { timeout: 15000 });
-
-			// 3) 질문 입력 후 Enter
-			await page.fill(textareaSelector, question);
-			await page.keyboard.press("Enter");
-
-			// 4) URL이 검색 결과(/search/...)로 바뀔 때까지 대기
-			const initialUrl = url;
-			try {
-				await page.waitForURL(/\/search\//, { timeout: 30000 });
-			} catch {
-				// /search/ 로 안 바뀌는 경우에도 최소한 URL 변화는 한 번 더 기다려 본다.
-				await page.waitForURL(
-					(current) => current.href !== initialUrl,
-					{ timeout: 5000 },
-				).catch(() => {});
-			}
-
-			finalUrl = page.url();
-
-			// 5) Devin 답변 본문 컨테이너에서 텍스트 추출
-			try {
-				const answerLocator = page
-					.locator("div.prose-custom.prose-custom-md.prose-custom-gray")
-					.first();
-
-				await answerLocator.waitFor({ state: "visible", timeout: 60000 });
-				answerText = (await answerLocator.innerText()).trim();
-			} catch {
-				answerText = "";
-			}
-		} catch (error) {
-			console.error("deepwikiToolNode failed", {
-				message: error.message,
-				name: error.name,
-				stack: error.stack,
-				raw: (() => {
-					try { return JSON.stringify(error); } catch { return String(error); }
-				})(),
-			});
-			answerText = "";
-		} finally {
-			if (browser) {
-				try {
-					await browser.close();
-				} catch {}
-			}
-		}
-
-		const deepwikiResponse = [
-			`DeepWiki URL: ${finalUrl || url}`,
-			"",
-			answerText || "",
-		].join("\n");
-
-		return { deepwikiResponses: [{
-			deepwikiResponse,
-			issueURL: issue.issueURL,
-		}] };
+		const toolCall = {
+			name: "ask_question",
+			args: {
+				repoName: repoName,
+				question: `Here is a GitHub issue.
+					 Title: ${issue.issueTitle}
+					 Body: ${issue.issueDescription}
+					 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`
+			},
+			id: `call_${Date.now()}`,
+			type: "tool"
+		};
+		const aiMessage = new AIMessage({
+			content: "",
+			tool_calls: [toolCall]
+		});
+		const result = await new ToolNode([askQuestionTool]).invoke({
+			messages: [aiMessage]
+		});
+		return { deepwikiResponses: [{ 
+			deepwikiResponse: result.messages.at(-1)?.content,
+			issueURL: issue.issueURL	
+		}]};
 	}
 
 	class TimeoutError extends Error {
