@@ -2,6 +2,7 @@ const deepwikiLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
 	const { traceable } = require("langsmith/traceable");
 	const { StateGraph, START, END, Annotation, Send } = require("@langchain/langgraph");
+	const { webkit } = require("playwright");
 
 	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
 
@@ -85,104 +86,87 @@ const deepwikiLangchainAgent = async () => {
 		${deepwikiResponse}
 	`;
 
-	async function deepwikiToolNode({ allIssues }) {
+	async function deepwikiToolNode({ issue }) {
 		const url = `https://deepwiki.com/${repoName}`;
 		const textareaSelector = 'textarea[data-deepwiki-input="question"]';
-		const answerSelector = "div.prose-custom.prose-custom-md.prose-custom-gray";
 
-		const deepwikiResponses = [];
-
-		// 모든 이슈를 순차적으로 처리
-		for (const issue of allIssues) {
-			const question = `Here is a GitHub issue.
+		const question = `Here is a GitHub issue.
 Title: ${issue.issueTitle}
 Body: ${issue.issueDescription}
 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`;
 
-			let browser;
-			let answerText = "";
-			let finalUrl = "";
+		let browser;
+		let answerText = "";
+		let finalUrl = "";
 
+		try {
+			browser = await webkit.launch({ headless: true });
+			const context = await browser.newContext();
+			const page = await context.newPage();
+
+			// 1) DeepWiki 페이지로 이동
+			await page.goto(url, { waitUntil: "networkidle" });
+
+			// 2) 질문 입력 textarea가 나타날 때까지 대기
+			await page.waitForSelector(textareaSelector, { timeout: 15000 });
+
+			// 3) 질문 입력 후 Enter
+			await page.fill(textareaSelector, question);
+			await page.keyboard.press("Enter");
+
+			// 4) URL이 검색 결과(/search/...)로 바뀔 때까지 대기
+			const initialUrl = url;
 			try {
-				// 환경에 따라 다른 Puppeteer 설정 사용
-				const isLocal = process.env.NODE_ENV !== 'prod';
-				
-				if (isLocal) {
-					// 로컬 개발 환경 - puppeteer가 자동 다운로드한 Chrome 사용
-					const puppeteer = require("puppeteer");
-					browser = await puppeteer.launch({ headless: true });
-				} else {
-					// Lambda 환경 - @sparticuz/chromium 사용
-					const puppeteer = require("puppeteer-core");
-					const chromium = require("@sparticuz/chromium");
-					browser = await puppeteer.launch({
-						args: chromium.args,
-						executablePath: await chromium.executablePath(),
-						headless: chromium.headless,
-					});
-				}
-				
-				const page = await browser.newPage();
-
-				// 1) DeepWiki 페이지로 이동
-				await page.goto(url, { waitUntil: "networkidle0" });
-
-				// 2) 질문 입력 textarea가 나타날 때까지 대기
-				await page.waitForSelector(textareaSelector, { timeout: 15000 });
-
-			// 3) 질문 입력 후 Enter (Promise.all로 navigation 대기)
-			await page.type(textareaSelector, question);
-			await page.waitForTimeout(500); // 입력 완료 후 짧은 대기
-			
-			// 4) URL이 검색 결과(/search/...)로 바뀔 때까지 대기 (SPA 클라이언트 사이드 라우팅 대응)
-				await Promise.all([
-					page.waitForFunction(
-						() => window.location.href.includes('/search/'),
-						{ timeout: 60000 }
-					),
-					page.keyboard.press("Enter")
-				]);
-				finalUrl = page.url();
-
-				// 5) Devin 답변 본문 컨테이너에서 텍스트 추출
-				await page.waitForSelector(answerSelector, { visible: true, timeout: 60000 });
-				const element = await page.$(answerSelector);
-				if (element) {
-					answerText = await page.evaluate(el => el.innerText.trim(), element);
-				}
-				
-			} catch (error) {
-				console.log("deepwikiToolNode failed", {
-					message: error.message,
-					name: error.name,
-					stack: error.stack,
-					raw: (() => {
-						try { return JSON.stringify(error); } catch { return String(error); }
-					})(),
-				});
-				answerText = "";
-				throw error;
-			} finally {
-				if (browser) {
-					try {
-						await browser.close();
-					} catch {}
-				}
+				await page.waitForURL(/\/search\//, { timeout: 30000 });
+			} catch {
+				// /search/ 로 안 바뀌는 경우에도 최소한 URL 변화는 한 번 더 기다려 본다.
+				await page.waitForURL(
+					(current) => current.href !== initialUrl,
+					{ timeout: 5000 },
+				).catch(() => {});
 			}
 
-			const deepwikiResponse = [
-				`DeepWiki URL: ${finalUrl || url}`,
-				"",
-				answerText || "",
-			].join("\n");
+			finalUrl = page.url();
 
-			deepwikiResponses.push({
-				deepwikiResponse,
-				issueURL: issue.issueURL,
+			// 5) Devin 답변 본문 컨테이너에서 텍스트 추출
+			try {
+				const answerLocator = page
+					.locator("div.prose-custom.prose-custom-md.prose-custom-gray")
+					.first();
+
+				await answerLocator.waitFor({ state: "visible", timeout: 60000 });
+				answerText = (await answerLocator.innerText()).trim();
+			} catch {
+				answerText = "";
+			}
+		} catch (error) {
+			console.error("deepwikiToolNode failed", {
+				message: error.message,
+				name: error.name,
+				stack: error.stack,
+				raw: (() => {
+					try { return JSON.stringify(error); } catch { return String(error); }
+				})(),
 			});
+			answerText = "";
+		} finally {
+			if (browser) {
+				try {
+					await browser.close();
+				} catch {}
+			}
 		}
 
-		return { deepwikiResponses };
+		const deepwikiResponse = [
+			`DeepWiki URL: ${finalUrl || url}`,
+			"",
+			answerText || "",
+		].join("\n");
+
+		return { deepwikiResponses: [{
+			deepwikiResponse,
+			issueURL: issue.issueURL,
+		}] };
 	}
 
 	class TimeoutError extends Error {
@@ -263,9 +247,6 @@ How can this issue be resolved, what is its root cause, what is the recommended 
 	}
 
 	const MessagesState = Annotation.Root({
-		allIssues: Annotation({
-			default: () => [],
-		}),
 		deepwikiResponses: Annotation({
 			reducer: (current, update) => current.concat(update),
 			default: () => [],
@@ -278,16 +259,19 @@ How can this issue be resolved, what is its root cause, what is the recommended 
 	const workflow = new StateGraph(MessagesState)
 		.addNode("deepwikiTool", deepwikiToolNode)
 		.addNode("reason", reasonNode)
-		.addEdge(START, "deepwikiTool")
-		.addEdge("deepwikiTool", "reason")
+		.addConditionalEdges(START, (_state) => {
+			return issues.map((issue) => new Send("deepwikiTool", { issue }));
+		})
+		.addConditionalEdges("deepwikiTool", ({ deepwikiResponses }) => {
+			return deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send("reason", { deepwikiResponse, issueURL }));
+		})
 		.addEdge("reason", END)
 		.compile();
 
 	const config = $('Get Workflow Run Id').first().json;
 	const result = await traceable(
 		async () => {
-			// 초기 state에 모든 issues 전달
-			return await workflow.invoke({ allIssues: issues });
+			return await workflow.invoke({});
 		},
 		{ 
 			name: "DeepWiki Analysis",
