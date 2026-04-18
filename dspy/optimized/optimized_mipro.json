@@ -1,0 +1,61 @@
+{
+  "scorer.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [
+      {
+        "augmented": true,
+        "title": "Add breeze generate issue content for airflowctl",
+        "body": "### Body\n\nWe have this for the core and populated merged PRs to a certain branch. We need a similar thing, but the directory granularity should be on the `airflow-ctl/` path.\n\n``` shell\nbreeze release-management generate-issue-content-core --previous-release ${PREVIOUS_VERSION} --current-release ${VERSION_RC}\n```\n\n### Committer\n\n- [x] I acknowledge that I am a maintainer/committer of the Apache Airflow project.",
+        "reasoning": "This issue is focused and technical, targeting a specific feature to enhance the Breeze tool within the Apache Airflow project. It clearly defines the requirements and references existing functionality, making it relatively straightforward for contributors with the right technical skills to implement. The request for directory granularity on the `airflow-ctl/` path is specific enough to guide the work. Additionally, the acknowledgment from the committer indicates familiarity with the project, suggesting some level of readiness to address this issue. Overall, the task appears approachable for contributors with experience in the project.",
+        "score": 0.4873627846298213
+      },
+      {
+        "augmented": true,
+        "title": "UI - Disable auto refresh queries if server respond 403 forbidden",
+        "body": "### Body\n\nAutoRefresh condition for the UI is not considering server response, and will try querying as long as UI condition for refresh are met.\n\nThis is problematic in case the user does not have 'access' for instance missing permissions and the endpoint returns '403'. In this scenario it's very unlikely that the user will suddenly get access to the resource, so disabling the auto refresh on this particular endpoint seems fair to avoid spamming the server with useless requests.\n\n\n### Committer\n\n- [x] I acknowledge that I am a maintainer/committer of the Apache Airflow project.",
+        "reasoning": "This issue is straightforward as it defines a clear bug in the UI logic related to the auto-refresh condition when a 403 Forbidden response is received from the server. The fix seems relatively simple—modifying the UI behavior to disable auto-refresh requests after receiving this specific response. The description clearly outlines the problem and the rationale behind the suggested change, making it easier for contributors to understand and implement the necessary adjustments. Additionally, the acknowledgment of the committer status can expedite the review process for any submitted PR.",
+        "score": 0.4287035873614354
+      },
+      {
+        "title": "Asset graph blank when DAG contains TriggerDagRunOperator, unregistered \"trigger\" node type in frontend causes silent render failure",
+        "body": "### Apache Airflow version\n\n3.1.7+astro.2\n\n### What happened and how to reproduce it?\n\nWhen a DAG contains a `TriggerDagRunOperator`, the asset dependency graph API returns nodes with `\"type\": \"trigger\"`. The Airflow 3 frontend asset graph renderer does not have a registered component for the `trigger` node type, causing the entire graph to render blank with no error shown.\n\nReproduction Steps:\n\n1. Create the following two DAGs and a shared assets file:\n\nassets_test.py:\n```\nfrom airflow.sdk import Asset\ntest_asset = Asset(name=\"test_asset\")\ntrigger_test_asset = Asset(name=\"trigger_test_asset\")\n```\n\nproducer_no_trigger.py (graph renders correctly):\n\n```\nfrom airflow.sdk import DAG\nfrom airflow.providers.standard.operators.python import PythonOperator\nfrom datetime import datetime\nfrom dags.assets_test import test_asset\n\nwith DAG(dag_id=\"producer_no_trigger\", schedule=None, start_date=datetime(2021,1,1), catchup=False):\n    PythonOperator(task_id=\"emit\", python_callable=lambda: None, outlets=[test_asset])\n\n```\n\nproducer_with_trigger.py (graph does NOT render):\n\n```\nfrom airflow.sdk import DAG\nfrom airflow.providers.standard.operators.python import PythonOperator\nfrom airflow.providers.standard.operators.trigger_dagrun import TriggerDagRunOperator\nfrom datetime import datetime\nfrom dags.assets_test import trigger_test_asset\n\nwith DAG(dag_id=\"producer_with_trigger\", schedule=None, start_date=datetime(2021,1,1), catchup=False):\n    emit = PythonOperator(task_id=\"emit\", python_callable=lambda: None, outlets=[trigger_test_asset])\n    trigger = TriggerDagRunOperator(task_id=\"trigger_something\", trigger_dag_id=\"some_dag\", wait_for_completion=False)\n    emit >> trigger\n```\n\n2. Deploy all files and wait for them to parse\n3. Go to Assets tab → click `test_asset `→ graph renders correctly\n4. Go to Assets tab → click `trigger_test_asset` → graph is blank\n\nThe difference in the dependency API responses confirms the root cause:\n\ntest_asset (graph renders) dependency API response:\n\n```\n{\n    \"edges\": [\n        {\n            \"source_id\": \"dag:producer_no_trigger\",\n            \"target_id\": \"asset:10\"\n        }\n    ],\n    \"nodes\": [\n        {\n            \"id\": \"dag:producer_no_trigger\",\n            \"label\": \"producer_no_trigger\",\n            \"type\": \"dag\"\n        },\n        {\n            \"id\": \"asset:10\",\n            \"label\": \"test_asset\",\n            \"type\": \"asset\"\n        }\n    ]\n}\n```\n\ntrigger_test_asset (graph blank) dependency API response:\n\n```\n{\n    \"edges\": [\n        {\n            \"source_id\": \"dag:producer_with_trigger\",\n            \"target_id\": \"asset:9\"\n        },\n        {\n            \"source_id\": \"dag:producer_with_trigger\",\n            \"target_id\": \"trigger:producer_with_trigger:some_dag:trigger_something\"\n        },\n        {\n            \"source_id\": \"trigger:producer_with_trigger:some_dag:trigger_something\",\n            \"target_id\": \"dag:some_dag\"\n        }\n    ],\n    \"nodes\": [\n        {\n            \"id\": \"dag:producer_with_trigger\",\n            \"label\": \"producer_with_trigger\",\n            \"type\": \"dag\"\n        },\n        {\n            \"id\": \"asset:9\",\n            \"label\": \"trigger_test_asset\",\n            \"type\": \"asset\"\n        },\n        {\n            \"id\": \"trigger:producer_with_trigger:some_dag:trigger_something\",\n            \"label\": \"trigger_something\",\n            \"type\": \"trigger\"\n        }\n    ]\n}\n```\n\n### What you think should happen instead?\n\nThe asset graph should render `trigger` type nodes visually. Currently the entire graph fails to render silently when any `trigger` type node is present in the response.\n\n\n### Operating System\n\nDebian GNU/Linux 12 (bookworm)\n\n### Versions of Apache Airflow Providers\n\n```apache-airflow-providers-celery==3.16.0\napache-airflow-providers-common-compat==1.13.1\napache-airflow-providers-common-io==1.7.1\napache-airflow-providers-common-sql==1.31.0\napache-airflow-providers-elasticsearch==6.4.4\napache-airflow-providers-openlineage==2.10.2\napache-airflow-providers-smtp==2.4.2\napache-airflow-providers-standard==1.11.1\n```\n\n### Deployment\n\nAstronomer\n\n### Deployment details\n\nAstronomer Runtime 3.1-13 based on Apache Airflow 3.1.7+astro.2\n\n### Anything else?\n\nConfirmed from Airflow source code that `trigger` is not a registered node type in the frontend. \n\nIn `airflow-core/src/airflow/ui/src/components/Graph/graphTypes.ts` at `https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/ui/src/components/Graph/graphTypes.ts`:\n\n```\ntypescriptexport const nodeTypes = {\n  asset: AssetNode,\n  \"asset-alias\": AliasNode,\n  \"asset-condition\": AssetConditionNode,\n  \"asset-name-ref\": DefaultNode,\n  \"asset-uri-ref\": DefaultNode,\n  dag: DagNode,\n  join: JoinNode,\n  task: TaskNode,\n};\n```\n\n### Are you willing to submit PR?\n\n- [ ] Yes I am willing to submit a PR!\n\n### Code of Conduct\n\n- [x] I agree to follow this project's [Code of Conduct](https://github.com/apache/airflow/blob/main/CODE_OF_CONDUCT.md)\n",
+        "score": 0.20680299720977463
+      },
+      {
+        "title": "Do not use serde library for database migrations",
+        "body": "### Body\n\nA migration having to load the entire serde library would lead to a painful and slow migration, we should explore alternatives to this. Ref: https://github.com/apache/airflow/blob/main/airflow-core/src/airflow/migrations/versions/0092_3_2_0_replace_deadline_inline_callback_with_fkey.py\n\n### Committer\n\n- [x] I acknowledge that I am a maintainer/committer of the Apache Airflow project.",
+        "score": 0.1598155545883434
+      }
+    ],
+    "signature": {
+      "instructions": "Evaluate the provided GitHub issue titles and bodies to score them for contribution suitability. Use a scale from 0 to 1, where scores closer to 1 indicate that the issue is easier and more appropriate for contributors to tackle. Additionally, provide clear reasoning for each score, explaining why the issue is suitable or challenging for potential contributions based on factors like clarity, relevance, and complexity. Your assessment should focus on enhancing the user experience in Apache Airflow by addressing issues related to the interface, error handling, and documentation clarity.",
+      "fields": [
+        {
+          "prefix": "Title:",
+          "description": "Issue title"
+        },
+        {
+          "prefix": "Body:",
+          "description": "Issue body/description"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Score:",
+          "description": "Contribution suitability score between 0 and 1. Higher = easier to contribute"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

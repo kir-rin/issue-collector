@@ -6,3 +6,4 @@ payload.json
 .DS_Store
 .env
 .*
+**/__pycache__/*
