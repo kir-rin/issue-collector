@@ -1,6 +1,7 @@
 const issueAnalysisLangchainAgent = async () => {
 	const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require("langchain");
 	const { traceable } = require("langsmith/traceable");
+	const { encodingForModel } = require("js-tiktoken");
 	 
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
 	const languageModel = await this.getInputConnectionData('ai_languageModel', 0);
@@ -70,6 +71,9 @@ const issueAnalysisLangchainAgent = async () => {
 			${JSON.stringify(release)}
 		`.trim();
 
+	const encoder = encodingForModel("gpt-4");
+	const inputTokenCount = encoder.encode(userPrompt).length;
+
 	class TimeoutError extends Error {
 		constructor(message = 'Operation timed out') {
 			super(message);
@@ -122,7 +126,7 @@ const issueAnalysisLangchainAgent = async () => {
 				jitter: true,
 				onFailure: "error",
 			}),
-			timeoutMiddleware(4 * 60 * 1000),
+			timeoutMiddleware(6 * 60 * 1000),
 		]
 	});
 	const config = $('Get Workflow Run Id').first().json;
@@ -134,7 +138,12 @@ const issueAnalysisLangchainAgent = async () => {
 			},
 			{ 
 				name: "Issue Analysis",
-				...config
+				...config,
+				metadata: {
+					...config.metadata,
+					inputTokenCount,
+					issueCount: issues.length,
+				},
 			},
 	)();
 	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content; 
