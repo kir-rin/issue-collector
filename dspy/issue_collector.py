@@ -187,6 +187,26 @@ class IssueCollector:
         print(f"[IssueCollector] Total PRs collected: {len(self._prs)}")
         return self._prs
 
+    def fetch_until_issues(self, target_issues: int = 50, max_prs: int = 1000) -> list[dict[str, Any]]:
+        print(f"[IssueCollector] Fetching PRs until {target_issues} issues are collected...")
+
+        limit = min(100, max_prs)
+        self.fetch_merged_prs(limit=limit)
+        issues = self.extract_issues()
+        print(f"[IssueCollector] Fetched {len(self._prs)} PRs, found {len(issues)} issues (page 1)")
+
+        page = 2
+        while len(issues) < target_issues and self._has_next_page and len(self._prs) < max_prs:
+            remaining_prs = max_prs - len(self._prs)
+            limit = min(100, remaining_prs)
+            self.fetch_more_prs(limit=limit)
+            issues = self.extract_issues()
+            print(f"[IssueCollector] Fetched {len(self._prs)} PRs, found {len(issues)} issues (page {page})")
+            page += 1
+
+        print(f"[IssueCollector] Complete: {len(self._prs)} PRs, {len(issues)} issues")
+        return self._prs
+
     def extract_issues(self) -> list[dict[str, Any]]:
         issue_prs: dict[str, list[dict]] = {}
 
