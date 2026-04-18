@@ -15,10 +15,10 @@ class IssueScoreSignature(dspy.Signature):
 class IssueScorer(dspy.Module):
     def __init__(self):
         super().__init__()
-        self.score = dspy.ChainOfThought(IssueScoreSignature)
+        self.scorer = dspy.ChainOfThought(IssueScoreSignature)
 
     def forward(self, title: str, body: str):
-        return self.score(title=title, body=body)
+        return self.scorer(title=title, body=body)
 
 
 def score_metric(example: dspy.Example, prediction: dspy.Prediction, trace=None) -> float:
@@ -42,7 +42,7 @@ class PromptOptimizer:
         
         if n_train < 50:
             return "BootstrapFewShot", "optimized_fewshot.json"
-        elif n_train < 200:
+        elif n_train < 100:
             return "BootstrapFewShotWithRandomSearch", "optimized_random_search.json"
         else:
             return "MIPROv2", "optimized_mipro.json"
@@ -85,7 +85,7 @@ class PromptOptimizer:
                 max_bootstrapped_demos=4,
                 max_labeled_demos=16,
                 num_candidate_programs=10,
-                num_threads=4,
+                num_threads=1,
             )
             self.optimized_scorer = optimizer.compile(
                 scorer,
