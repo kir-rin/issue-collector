@@ -544,7 +544,7 @@
         },
         "responsesApiEnabled": false,
         "options": {
-          "timeout": 300000
+          "timeout": 600000
         }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
