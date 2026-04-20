@@ -54,8 +54,8 @@ const titleGeneratorLangchainAgent = async () => {
 				Please create a newsletter title for the issue below.
 
 				### Issue
-				Title: ${issue.issueTitle}
-				Body: ${issue.issueDescription}
+				Title: ${issue.title}
+				Body: ${issue.description}
 				Summary: ${issue.summary}
 				Analogy: ${issue.analogy}
 

@@ -68,7 +68,7 @@ const convertMJML = function () {
 
 	let issues = [];
 	for (const issue of processedIssues) {
-		let issueInfo = `<mj-text mj-class="issue-title">${issue.issueTitle}</mj-text>
+		let issueInfo = `<mj-text mj-class="issue-title">${issue.title}</mj-text>
 												<mj-spacer/>
 												<mj-text mj-class="section-title">🔑 Keywords</mj-text>
 												<mj-text mj-class="section-content">${issue.keyword.join(', ')}</mj-text>
@@ -77,8 +77,8 @@ const convertMJML = function () {
 		let analogy = `<mj-text mj-class="section-title">🔄 Analogy</mj-text>`;
 		analogy += createBulletedList(issue.analogy)
 
-		let issueDescription = `<mj-text mj-class="section-title">🧾 Issue Description</mj-text>`;
-		issueDescription += createBulletedList(issue.issueDescription);
+		let description = `<mj-text mj-class="section-title">🧾 Issue Description</mj-text>`;
+		description += createBulletedList(issue.description);
 
 		let rootCause = `<mj-text mj-class="section-title">🧩 Root Cause</mj-text>`
 		rootCause += createBulletedList(issue.rootCause);
@@ -87,20 +87,20 @@ const convertMJML = function () {
 		resolutionApproach += createBulletedList(issue.resolutionApproach);
 		resolutionApproach += '</mj-text>';
 
-		let issueSuitability = `<mj-text mj-class="section-title">✅ Issue Suitability: ${issue.issueSuitability.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
-		issueSuitability += createBulletedList(issue.issueSuitability.reasons);
-		issueSuitability += '</mj-text>';
+		let suitability = `<mj-text mj-class="section-title">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
+		suitability += createBulletedList(issue.suitability.reasons);
+		suitability += '</mj-text>';
 
 		let technicalDifficulty = `<mj-text mj-class="section-title">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size="14px" line-height="1.6">`
 		technicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);
 		technicalDifficulty += '</mj-text>';
 
-		let issuelink = `<mj-text mj-class="section-title"><p>👉 Go to the Issue <a href="${issue.issueURL}">(Link)</a></p></mj-text>`;
+		let issuelink = `<mj-text mj-class="section-title"><p>👉 Go to the Issue <a href="${issue.url}">(Link)</a></p></mj-text>`;
 		let deepwikiLink = `<mj-text mj-class="section-title"><p>🌀 Check the code-level explanation on Deepwiki <a href="${issue.deepwikiLink}">(Link)</a></p></mj-text>`;
 
 		issues.push(
-			issueInfo + analogy + issueDescription +
-			rootCause + resolutionApproach + issueSuitability +
+			issueInfo + analogy + description +
+			rootCause + resolutionApproach + suitability +
 			technicalDifficulty + issuelink + deepwikiLink
 		);
 	}

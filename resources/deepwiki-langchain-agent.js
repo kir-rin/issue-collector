@@ -103,8 +103,8 @@ const deepwikiLangchainAgent = async () => {
 			args: {
 				repoName: repoName,
 				question: `Here is a GitHub issue.
-					 Title: ${issue.issueTitle}
-					 Body: ${issue.issueDescription}
+					 Title: ${issue.title}
+					 Body: ${issue.description}
 					 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`
 			},
 			id: `call_${Date.now()}`,
@@ -119,7 +119,7 @@ const deepwikiLangchainAgent = async () => {
 		});
 		return { deepwikiResponses: [{ 
 			deepwikiResponse: result.messages.at(-1)?.content,
-			issueURL: issue.issueURL	
+			url: issue.url	
 		}]};
 	}
 
@@ -191,12 +191,12 @@ const deepwikiLangchainAgent = async () => {
 	});
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
 
-	async function reasonNode({ deepwikiResponse, issueURL }) {
+	async function reasonNode({ deepwikiResponse, url }) {
 		const userPrompt = buildUserPrompt(deepwikiResponse);
 		const reasonResult = await agent.invoke({ messages: [{ role: "user", content: userPrompt }] });
 		const aiMessage = reasonResult.messages.findLast(m => m.type === "ai")?.content;
 		const parsedMessage = await outputParser.parse(aiMessage);
-		parsedMessage.output.issueURL = issueURL
+		parsedMessage.output.url = url 
 		return { finalAnswers: [parsedMessage.output] };
 	}
 
@@ -217,7 +217,7 @@ const deepwikiLangchainAgent = async () => {
 			return issues.map((issue) => new Send("deepwikiTool", { issue }));
 		})
 		.addConditionalEdges("deepwikiTool", ({ deepwikiResponses }) => {
-			return deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send("reason", { deepwikiResponse, issueURL }));
+			return deepwikiResponses.map(({ deepwikiResponse, url }) => new Send("reason", { deepwikiResponse, url }));
 		})
 		.addEdge("reason", END)
 		.compile();
