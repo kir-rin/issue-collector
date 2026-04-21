@@ -17,6 +17,37 @@ const deepwikiLangchainAgent = async () => {
 	const tools = await mcpClient.getTools()
 	const askQuestionTool = tools.filter(t => t.name === "ask_question")[0];
 
+	const MCP_ERROR_CODE = {
+		PARSE_ERROR: -32700,
+		INVALID_REQUEST: -32600,
+		METHOD_NOT_FOUND: -32601,
+		INVALID_PARAMS: -32602,
+		INTERNAL_ERROR: -32603,
+		SERVER_DEFINED_START: -32000,
+		SERVER_DEFINED_END: -32099,
+	};
+
+	const MCP_SDK_ERROR = {
+		REQUEST_TIMEOUT: 'RequestTimeout',
+		CONNECTION_CLOSED: 'ConnectionClosed',
+	};
+
+	const isRetryableMcpError = (error) => {
+		const errorCode = error.code ?? error.error?.code;
+		if (errorCode === undefined) return false;
+		
+		return (
+			errorCode === MCP_ERROR_CODE.INTERNAL_ERROR ||
+			errorCode === MCP_SDK_ERROR.REQUEST_TIMEOUT ||
+			errorCode === MCP_SDK_ERROR.CONNECTION_CLOSED ||
+			(typeof errorCode === 'number' && 
+			 errorCode >= MCP_ERROR_CODE.SERVER_DEFINED_END && 
+			 errorCode <= MCP_ERROR_CODE.SERVER_DEFINED_START)
+		);
+	};
+
+	const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 	const { owner, name } = $('Load Repo Info').item.json;
 	const repoName = `${owner}/${name}`;
 	const issues = $('get Top Fit Issues').item.json.issues;
@@ -98,29 +129,45 @@ const deepwikiLangchainAgent = async () => {
 	`;
 
 	async function deepwikiToolNode({ issue }) {
-		const toolCall = {
-			name: "ask_question",
-			args: {
-				repoName: repoName,
-				question: `Here is a GitHub issue.
-					 Title: ${issue.title}
-					 Body: ${issue.description}
-					 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`
-			},
-			id: `call_${Date.now()}`,
-			type: "tool"
-		};
-		const aiMessage = new AIMessage({
-			content: "",
-			tool_calls: [toolCall]
-		});
-		const result = await new ToolNode([askQuestionTool]).invoke({
-			messages: [aiMessage]
-		});
-		return { deepwikiResponses: [{ 
-			deepwikiResponse: result.messages.at(-1)?.content,
-			url: issue.url	
-		}]};
+		const maxRetries = 3;
+		const baseDelayMs = 2000;
+		let lastError;
+
+		for (let attempt = 0; attempt < maxRetries; attempt++) {
+			try {
+				const toolCall = {
+					name: "ask_question",
+					args: {
+						repoName: repoName,
+						question: `Here is a GitHub issue.
+							 Title: ${issue.title}
+							 Body: ${issue.description}
+							 How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ___TRANSLATION_LANGUAGE___.`
+					},
+					id: `call_${Date.now()}`,
+					type: "tool"
+				};
+				const aiMessage = new AIMessage({
+					content: "",
+					tool_calls: [toolCall]
+				});
+				const result = await new ToolNode([askQuestionTool]).invoke({
+					messages: [aiMessage]
+				});
+				return { deepwikiResponses: [{ 
+					deepwikiResponse: result.messages.at(-1)?.content,
+					url: issue.url	
+				}]};
+			} catch (error) {
+				lastError = error;
+				if (!isRetryableMcpError(error) || attempt === maxRetries - 1) {
+					throw error;
+				}
+				const delay = baseDelayMs * Math.pow(2, attempt) + Math.floor(Math.random() * 1000);
+				await sleep(delay);
+			}
+		}
+		throw lastError;
 	}
 
 	class TimeoutError extends Error {
