@@ -6,8 +6,8 @@ const deepwikiResponseSchema = () => {
 		properties: {
 			level: {
 				type: "string",
-				enum: ["High", "Medium", "Low"],
-				description: "High | Medium | Low"
+				enum: ["high", "medium", "low"],
+				description: "high | medium | low"
 			},
 			reasons: {
 				type: "array",
