@@ -46,6 +46,52 @@ const convertMJML = function () {
 		}
 		return items.map(item => `<mj-text mj-class="section-content">• ${item}</mj-text>`).join('<br/>');
 	};
+	const prData = processData($('PR Analysis Langchain Agent').first().json);
+	
+	let referencePR = '';
+	if (prData) {
+		referencePR = `
+			<mj-text mj-class="issue-title" align="center">🌟 Newcomer's Reference PR</mj-text>
+			<mj-text align="center" padding-top="0" padding-bottom="0">
+				<table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+					<tr>
+						<td style="
+							background-color: #3C3489;
+							color: #EEEDFE;
+							font-size: 12px;
+							font-family: Nanum, Times, sans-serif;
+							padding: 6px 16px;
+							border-radius: 20px;
+							white-space: nowrap;
+						">
+							&#9432;&nbsp; Check out this exemplary PR to get started
+						</td>
+					</tr>
+				</table>
+			</mj-text>
+			<mj-spacer/>
+			<mj-text mj-class="section-title" align="center"><a href="${prData.url}">${prData.title}</a></mj-text>
+			<mj-spacer/>
+			${createBulletedList(prData.analogy)}
+			${createBulletedList(prData.summary)}
+			<mj-spacer/>
+			<mj-divider border-width="1px"></mj-divider>
+			<mj-text mj-class="issue-title" align="center">🔗 Related Issue</mj-text>
+			<mj-text mj-class="section-title" align="center"><a href="${prData.linkedIssue?.url}">${prData.linkedIssue?.title}</a></mj-text>
+			<mj-spacer/>
+			${createBulletedList(prData.linkedIssue?.analogy)}
+			${createBulletedList(prData.linkedIssue?.summary)}
+			<mj-text mj-class="section-title" font-weight="bold">Why Good for Contribution</mj-text>
+			${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}
+			<mj-spacer/>
+			<mj-divider border-width="1px"></mj-divider>
+			<mj-text mj-class="issue-title" align="center">💡 Review</mj-text>
+			<mj-text mj-class="section-content">• ${prData.review?.summary?.[0]} <a href="${prData.review?.url}" style="font-weight: bold;">(Link)</a></mj-text>
+			<mj-text mj-class="section-title" font-weight="bold">Key Takeaway</mj-text>
+			${createBulletedList(prData.review?.insights)}
+			`;
+	}
+
 	const latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);
 	let latestRelease = `
 			 <mj-section padding="15px">
@@ -148,8 +194,8 @@ const convertMJML = function () {
 									}
 								</mj-style>
 									<mj-attributes>
-											<mj-class name="issue-title" font-size="22px" />
-											<mj-class name="section-title" font-size="15px" font-weight="bold"/>
+											<mj-class name="issue-title" font-family="Nanum, Times, sans-serif" font-size="22px" />
+											<mj-class name="section-title" font-family="Nanum, Times, sans-serif" font-size="15px" font-weight="bold"/>
 											<mj-class name="section-content" font-size="14px" line-height="1.6"/>
 									</mj-attributes>
 							</mj-head>
@@ -160,6 +206,16 @@ const convertMJML = function () {
 											</mj-column>
 									</mj-section>
 									<mj-divider  border-width="1px" border-color="#D3D3D3"/> 
+									<mj-section background-color="transparent" padding="0px">
+										<mj-column padding="0px">
+											<mj-image padding="0px" src="https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_"></mj-image>
+										</mj-column>
+									</mj-section>
+									<mj-section background-color="#F3E8FF" padding="30px 40px">
+										<mj-column width="100%">
+											${referencePR}
+										</mj-column>
+									</mj-section>
 									<mj-wrapper>
 											${latestRelease}
 											${summary}

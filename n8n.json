@@ -3,22 +3,6 @@
   "nodes": [
     {
       "parameters": {
-        "mode": "combine",
-        "fieldsToMatchString": "url",
-        "options": {}
-      },
-      "id": "b4c4e831-93bb-46e4-b1c8-c3284135e11b",
-      "name": "Merge",
-      "type": "n8n-nodes-base.merge",
-      "position": [
-        3184,
-        608
-      ],
-      "executeOnce": false,
-      "typeVersion": 3.2
-    },
-    {
-      "parameters": {
         "content": "## Usecases\nReceive a periodic newsletter featuring curated, contributor-friendly issues from your favorite repositories.\n\nBy regularly reviewing active issues and new releases, you'll naturally develop stronger habits around open source contribution as your brain starts recognizing these projects as important.\n\n\n### How it works\n* Collects the latest issues, comments, and recent commits using the GitHub API\n* Uses an AI model to select up to three beginner-friendly issues worth contributing to\n* Summarizes each issue—including contribution guidance and relevance—based on Deepwiki MCP data\n* Converts the summary into HTML and delivers it as an email newsletter\n\n### Requirements\n* [Github Personal Access Token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token)\n* [Openrouter API key](https://openrouter.ai/settings/keys)\n* [Google App Password](https://myaccount.google.com/apppasswords)\n* Verify that your target open-source project is indexed\nat https://deepwiki.com/{owner}/{repo} (e.g. https://deepwiki.com/vercel/next.js)\n\n### How to Use\n1. Update the \"Load repo info\" configuration with your target repository's owner and name (e.g., owner: `vercel`, repo: `next.js`)\n2. Add your GitHub Personal Access Token to the credentials of the \"Get Issues from GitHub\" node\n3. Connect your OpenRouter API key to all models linked to the Agent node\n4. Add your Google App Password to the \"Send email\" node credentials\n5. Enter the email address of the account authenticated with the Google App Password in both the \"to email\" and \"from email\" fields—the newsletter will be sent to that address\n\n### Customization\n* Modify the maximum number of contributor-friendly issues retrieved in the \"Get Top Fit Issues\" node\n* For improved results, adjust the models connected to the Agent node\n* Refine the criteria for \"contributor-friendliness\" in the \"IssueRank Agent\" node\n\n### Cron Setup\n- Replace the manual trigger with a Schedule Trigger node or another scheduling-capable node\n- If you don't have an n8n Cloud account, use this [alternative](https://github.com/dst03106/n8n-issue-collector?tab=readme-ov-file#%EF%B8%8F-how-to-use) instead: fork the repository and follow the setup instructions\nd follow the setup instructions.\n",
         "height": 928,
         "width": 736
@@ -29,53 +13,6 @@
       "position": [
         -384,
         656
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "content": "# 3. Generating a Newsletter Title\n### Creates a newsletter title based on the issue content.",
-        "height": 636,
-        "width": 584,
-        "color": 4
-      },
-      "id": "af2d0fef-f0fa-470b-8e68-81a6eda335a0",
-      "name": "Sticky Note7",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        3488,
-        400
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "content": "# 2.Summarizing Contribution Details\n### Generates information about contribution methods and levels (such as contribution suitability and technical difficulty using Deepwiki MCP. ",
-        "height": 636,
-        "width": 808,
-        "color": 5
-      },
-      "id": "1adc7dd3-6d4d-4751-8cee-18ed435e6ce4",
-      "name": "Sticky Note8",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        2496,
-        400
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "content": "# 4. Converting Issue Data to HTML and Sending via email\n### Converts issue-related data into HTML format and sends it through email.",
-        "height": 636,
-        "width": 696
-      },
-      "id": "806d707a-ae5a-42cd-bf27-2ce346d2e8a3",
-      "name": "Sticky Note9",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        4160,
-        400
       ],
       "typeVersion": 1
     },
@@ -111,63 +48,124 @@
     },
     {
       "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        1280
+      ],
+      "id": "5fb1db52-412e-429e-abeb-19b241325ebc",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "url",
+        "options": {}
+      },
+      "id": "1118bb95-8ae2-465b-b882-1b8c14f83cb8",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        5104,
+        848
+      ],
+      "executeOnce": false,
+      "typeVersion": 3.2
+    },
+    {
+      "parameters": {
+        "content": "# 3. Generating a Newsletter Title\n### Creates a newsletter title based on the issue content.",
+        "height": 636,
+        "width": 584,
+        "color": 4
+      },
+      "id": "3e0c29fa-6d7b-4eeb-b6c5-2e41c44e5a3e",
+      "name": "Sticky Note7",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5408,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# 2.Summarizing Contribution Details\n### Generates information about contribution methods and levels (such as contribution suitability and technical difficulty using Deepwiki MCP. ",
+        "height": 636,
+        "width": 808,
+        "color": 5
+      },
+      "id": "b3f79776-70ea-47f4-80df-9992cbfe87d4",
+      "name": "Sticky Note8",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        4416,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "# 4. Converting Issue Data to HTML and Sending via email\n### Converts issue-related data into HTML format and sends it through email.",
+        "height": 636,
+        "width": 952
+      },
+      "id": "6ff7480b-24ce-4d09-be31-c49310d5f62f",
+      "name": "Sticky Note9",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        6080,
+        640
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
         "jsCode": "const mjml2html = require('mjml');\n  return {\n      htmlOutput: mjml2html($input.first().json.issueHTML)\n  }"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4464,
-        608
+        6384,
+        848
       ],
-      "id": "36b2de08-ff2b-4728-8396-2d8ec9ad1520",
+      "id": "9625fd78-44fd-4b19-9677-cb02e256301e",
       "name": "convert MJML to HTML",
       "executeOnce": false
     },
     {
       "parameters": {
-        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
+        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prData = processData($('PR Analysis Langchain Agent').first().json);\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue?.url}\">${prData.linkedIssue?.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue?.analogy)}\n\t\t${createBulletedList(prData.linkedIssue?.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review?.summary?.[0]} <a href=\"${prData.review?.url}\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review?.insights)}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4240,
-        608
+        6160,
+        848
       ],
-      "id": "de11b35d-7f55-41f4-a85b-30cac04f6529",
+      "id": "9d453d68-6b8d-49b2-abbd-46248e1682b5",
       "name": "convert MJML",
       "executeOnce": false,
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "fromEmail": "",
-        "toEmail": "",
-        "subject": "=[Issue Report] {{ $('Load Repo Info').first().json.owner }}/{{ $('Load Repo Info').first().json.name }} - {{ $('Title Generator Langchain Agent').first().json.title }}",
-        "html": "={{ $('convert MJML to HTML').item.json.htmlOutput.html }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.emailSend",
-      "typeVersion": 2.1,
-      "position": [
-        4688,
-        608
-      ],
-      "id": "af3bd974-1a38-4016-866e-8564dbc654e0",
-      "name": "Send email",
-      "webhookId": "d1108327-f642-465e-81a5-bb8e25098f9f",
-      "executeOnce": false,
-      "credentials": {
-        "smtp": {
-          "id": "smtp",
-          "name": "SMTP account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst buildUserPrompt = (deepwikiResponse) => `\n\t[ROLE]\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\t[OUTPUT RULES]\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\tDo not include markdown code blocks in the output.\n\tOutput ONLY the JSON object. No additional text.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[JSON SCHEMA]\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t[TASK]\n\tExtract and return ONLY a JSON object following the exact schema.\n\tPreserve the full length and content of the original text rather than summarizing.\n\n\t[REQUIREMENTS]\n\t- All content must be in \"ko-KR\"\n\t- translationLanguageCode should be \"ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\t[EXAMPLE OUTPUT]\n\t{\n\t\t\"output\": {\n\t\t\t\"translationLanguageCode\": \"en\",\n\t\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\t\"resolutionApproach\": [\n\t\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\t\"Implement event listener removal logic\"\n\t\t\t],\n\t\t\t\"technicalDifficulty\": {\n\t\t\t\t\"level\": \"Medium\",\n\t\t\t\t\"reasons\": [\n\t\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\t\"Need memory profiling experience\"\n\t\t\t\t]\n\t\t\t},\n\t\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t\t}\n\t}\n\n\t[OUTPUT FORMAT]\n\t- Return JSON only\n\t- No extra text\n\n\t[INPUT]\n\tDeepWiki Analysis:\n\t${deepwikiResponse}\n`;\n\nasync function deepwikiToolNode({ issue }) {\n\tconst toolCall = {\n\t\tname: \"ask_question\",\n\t\targs: {\n\t\t\trepoName: repoName,\n\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t Title: ${issue.title}\n\t\t\t\t Body: ${issue.description}\n\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t},\n\t\tid: `call_${Date.now()}`,\n\t\ttype: \"tool\"\n\t};\n\tconst aiMessage = new AIMessage({\n\t\tcontent: \"\",\n\t\ttool_calls: [toolCall]\n\t});\n\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\tmessages: [aiMessage]\n\t});\n\treturn { deepwikiResponses: [{ \n\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\turl: issue.url\t\n\t}]};\n}\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseDeepwikiMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nasync function reasonNode({ deepwikiResponse, url }) {\n\tconst userPrompt = buildUserPrompt(deepwikiResponse);\n\tconst reasonResult = await agent.invoke({ messages: [{ role: \"user\", content: userPrompt }] });\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsedMessage = await outputParser.parse(aiMessage);\n\tparsedMessage.output.url = url \n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, url }) => new Send(\"reason\", { deepwikiResponse, url }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({});\n\t},\n\t{ \n\t\tname: \"DeepWiki Analysis\",\n\t\t...config\n\t},\n)();\nreturn result.finalAnswers;"
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst MCP_ERROR_CODE = {\n\tPARSE_ERROR: -32700,\n\tINVALID_REQUEST: -32600,\n\tMETHOD_NOT_FOUND: -32601,\n\tINVALID_PARAMS: -32602,\n\tINTERNAL_ERROR: -32603,\n\tSERVER_DEFINED_START: -32000,\n\tSERVER_DEFINED_END: -32099,\n};\n\nconst MCP_SDK_ERROR = {\n\tREQUEST_TIMEOUT: 'RequestTimeout',\n\tCONNECTION_CLOSED: 'ConnectionClosed',\n};\n\nconst isRetryableMcpError = (error) => {\n\tconst errorCode = error.code ?? error.error?.code;\n\tif (errorCode === undefined) return false;\n\t\n\treturn (\n\t\terrorCode === MCP_ERROR_CODE.INTERNAL_ERROR ||\n\t\terrorCode === MCP_SDK_ERROR.REQUEST_TIMEOUT ||\n\t\terrorCode === MCP_SDK_ERROR.CONNECTION_CLOSED ||\n\t\t(typeof errorCode === 'number' && \n\t\t errorCode >= MCP_ERROR_CODE.SERVER_DEFINED_END && \n\t\t errorCode <= MCP_ERROR_CODE.SERVER_DEFINED_START)\n\t);\n};\n\nconst sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst buildUserPrompt = (deepwikiResponse) => `\n\t[ROLE]\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\t[OUTPUT RULES]\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\tDo not include markdown code blocks in the output.\n\tOutput ONLY the JSON object. No additional text.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[JSON SCHEMA]\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t[TASK]\n\tExtract and return ONLY a JSON object following the exact schema.\n\tPreserve the full length and content of the original text rather than summarizing.\n\n\t[REQUIREMENTS]\n\t- All content must be in \"ko-KR\"\n\t- translationLanguageCode should be \"ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\t[EXAMPLE OUTPUT]\n\t{\n\t\t\"output\": {\n\t\t\t\"translationLanguageCode\": \"en\",\n\t\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\t\"resolutionApproach\": [\n\t\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\t\"Implement event listener removal logic\"\n\t\t\t],\n\t\t\t\"technicalDifficulty\": {\n\t\t\t\t\"level\": \"Medium\",\n\t\t\t\t\"reasons\": [\n\t\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\t\"Need memory profiling experience\"\n\t\t\t\t]\n\t\t\t},\n\t\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t\t}\n\t}\n\n\t[OUTPUT FORMAT]\n\t- Return JSON only\n\t- No extra text\n\n\t[INPUT]\n\tDeepWiki Analysis:\n\t${deepwikiResponse}\n`;\n\nasync function deepwikiToolNode({ issue }) {\n\tconst maxRetries = 3;\n\tconst baseDelayMs = 2000;\n\tlet lastError;\n\n\tfor (let attempt = 0; attempt < maxRetries; attempt++) {\n\t\ttry {\n\t\t\tconst toolCall = {\n\t\t\t\tname: \"ask_question\",\n\t\t\t\targs: {\n\t\t\t\t\trepoName: repoName,\n\t\t\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t\t\t Title: ${issue.title}\n\t\t\t\t\t\t Body: ${issue.description}\n\t\t\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t\t\t},\n\t\t\t\tid: `call_${Date.now()}`,\n\t\t\t\ttype: \"tool\"\n\t\t\t};\n\t\t\tconst aiMessage = new AIMessage({\n\t\t\t\tcontent: \"\",\n\t\t\t\ttool_calls: [toolCall]\n\t\t\t});\n\t\t\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\t\t\tmessages: [aiMessage]\n\t\t\t});\n\t\t\treturn { deepwikiResponses: [{ \n\t\t\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\t\t\turl: issue.url\t\n\t\t\t}]};\n\t\t} catch (error) {\n\t\t\tlastError = error;\n\t\t\tif (!isRetryableMcpError(error) || attempt === maxRetries - 1) {\n\t\t\t\tthrow error;\n\t\t\t}\n\t\t\tconst delay = baseDelayMs * Math.pow(2, attempt) + Math.floor(Math.random() * 1000);\n\t\t\tawait sleep(delay);\n\t\t}\n\t}\n\tthrow lastError;\n}\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseDeepwikiMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nasync function reasonNode({ deepwikiResponse, url }) {\n\tconst userPrompt = buildUserPrompt(deepwikiResponse);\n\tconst reasonResult = await agent.invoke({ messages: [{ role: \"user\", content: userPrompt }] });\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsedMessage = await outputParser.parse(aiMessage);\n\tparsedMessage.output.url = url \n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, url }) => new Send(\"reason\", { deepwikiResponse, url }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({});\n\t},\n\t{ \n\t\tname: \"DeepWiki Analysis\",\n\t\t...config\n\t},\n)();\nreturn result.finalAnswers;"
           }
         },
         "inputs": {
@@ -200,10 +198,10 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        2864,
-        688
+        4784,
+        928
       ],
-      "id": "e8f85c79-afb3-4921-a108-00060217b4ce",
+      "id": "cc018a88-71bc-46ee-910c-eb446ce7759b",
       "name": "Deepwiki Langchain agent"
     },
     {
@@ -243,10 +241,10 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        3744,
-        608
+        5664,
+        848
       ],
-      "id": "93c69f30-844c-4a0e-8e1b-2a1c2852faad",
+      "id": "05cf9335-1621-4d14-9d05-bda6a4496bd9",
       "name": "Title Generator Langchain Agent"
     },
     {
@@ -257,10 +255,10 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        2880,
-        544
+        4800,
+        784
       ],
-      "id": "3bc31e74-50fd-4b41-8927-a6deb5f688c4",
+      "id": "0514276c-0355-4227-8fe0-86603c9dd102",
       "name": "Split Out"
     },
     {
@@ -270,10 +268,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2624,
-        688
+        4544,
+        928
       ],
-      "id": "ea8e1a37-e31a-410c-8fda-2cc887c62f04",
+      "id": "f5c502a4-3eba-4cd7-9c97-8d42eb5da26f",
       "name": "Deepwiki Response Schema",
       "alwaysOutputData": false
     },
@@ -286,10 +284,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2576,
-        896
+        4496,
+        1136
       ],
-      "id": "008e4a4e-08f4-4884-b2b2-4bac7d672f0b",
+      "id": "7469d383-ca40-4f1b-90da-1984f328f16c",
       "name": "Deepwiki Structured Output Parser",
       "executeOnce": false,
       "retryOnFail": true,
@@ -305,10 +303,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        3520,
-        880
+        5440,
+        1120
       ],
-      "id": "dd67528b-5bb7-4c62-9ee0-f1278a678163",
+      "id": "0579eec0-95e5-44a8-ad49-8a83c0581d33",
       "name": "Title Generator Structured Output Parser",
       "retryOnFail": true,
       "waitBetweenTries": 5000
@@ -320,104 +318,142 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3552,
-        608
+        5472,
+        848
       ],
-      "id": "7de65c31-96a4-4248-9159-61f2e398c227",
+      "id": "5fabb21e-ea3d-4d2b-a201-e5b699645d7d",
       "name": "Title Generator Schema",
       "alwaysOutputData": false
     },
     {
       "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
+        "method": "POST",
+        "url": "https://email.ap-northeast-2.amazonaws.com/v2/email/outbound-emails",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "aws",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.jsonString }}",
+        "options": {}
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
       "position": [
-        2576,
-        1104
+        6784,
+        848
       ],
-      "id": "190ff326-6592-448a-aa9c-0484b5784ed5",
-      "name": "OpenRouter Chat Model2",
+      "id": "8cbfb8b9-79bb-4ed4-bdac-b929608adf05",
+      "name": "AWS SES v2 HTTP Request",
       "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
+        "aws": {
+          "id": "aws",
+          "name": "AWS (IAM) account"
         }
       }
     },
     {
       "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
+        "jsCode": "const repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst title = $('Title Generator Langchain Agent').first().json.title;\nconst requestBody = {\n\tFromEmailAddress: \"noreply@kirrin.link\",\n\tDestination: { ToAddresses: [\"\"] },\n\tContent: {\n\t\tSimple: {\n\t\t\tSubject: { Data: `[Issue Report] ${repoInfo} - ${title}`, Charset: \"UTF-8\" },\n\t\t\tBody: {\n\t\t\t\tHtml: { \n\t\t\t\t\tData: $input.first().json.htmlOutput.html,\n\t\t\t\t\tCharset: \"UTF-8\" \n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n};\n\nconst jsonString = JSON.stringify(requestBody);\n\nreturn { jsonString }"
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        2912,
-        912
+        6592,
+        848
       ],
-      "id": "073cccf8-40e8-4b3f-8824-2fd79022f012",
-      "name": "OpenRouter Chat Model3",
+      "id": "ed480b52-239f-48a5-89c4-f8d979442937",
+      "name": "Make SES v2 Request Body"
+    },
+    {
+      "parameters": {},
+      "id": "bbf148da-4628-4007-a4ab-6c6ec6cf52b2",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        720,
+        864
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
+      },
+      "id": "74e1df16-994a-467d-b806-59a20e3138f4",
+      "name": "Load Repo Info",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        912,
+        864
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n    query {\n\t\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    name\n                    description\n                    createdAt\n\t\t\t\t\t\t\t\t\t\turl\n                }\n            }\n            issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    title\n                    url\n                    body\n                    author {\n                        ... on User {\n                            login\n                        }\n                    }\n                    issueType {\n                        name\n                    }\n                    labels(first: 5) {\n                        edges {\n                            node {\n                                name\n                            }\n                        }\n                    }\n                    comments(first: 10) {\n                        nodes {\n                            body\n                        }\n                    }\n                }\n            }\n        }\n    }\n",
+        "variables": "="
+      },
+      "id": "5f278541-ef9c-4faf-af77-585e4bad2652",
+      "name": "Get Issue From Github",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        2864,
+        864
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
       "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
         }
       }
     },
     {
       "parameters": {
-        "model": "openrouter/free",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
+        "jsCode": "const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const sortedIssues = $input.first().json.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.suitability.level];\n      const suitabilityB = suitabilityOrder[b.suitability.level];\n      return suitabilityA - suitabilityB\n  }).slice(0, 3);\n\n  return {\n      \"issues\" : sortedIssues\n  }"
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "id": "67b86e14-2af2-4793-b63c-a6ea11f41070",
+      "name": "get Top Fit Issues",
+      "type": "n8n-nodes-base.code",
       "position": [
-        3520,
-        1088
+        4096,
+        848
       ],
-      "id": "f83d0bf2-b556-4311-9bd5-7e72361a8046",
-      "name": "OpenRouter Chat Model4",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
+      "executeOnce": false,
+      "retryOnFail": false,
+      "typeVersion": 2
     },
     {
       "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
+        "content": "# 1. Analyze GitHub Issues for Contributors\n### Evaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
+        "height": 636,
+        "width": 696,
+        "color": 2
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "id": "5943d2f2-7f2f-4d7f-ae0e-6d454437ca57",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3840,
-        880
+        3552,
+        656
       ],
-      "id": "b6e3d9be-9130-4c3e-b5a7-9291420a48df",
-      "name": "OpenRouter Chat Model5",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowRunId = crypto.randomUUID();\nconst repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst config = {\n\tmetadata: {\n\t\trun_id: workflowRunId,\n\t\trepo: repoInfo,\n\t\temail: \"\",\n\t}\n};\nreturn config"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        864
+      ],
+      "id": "8159eb46-2f7b-4e46-b8b6-73c807d59a3b",
+      "name": "Get Workflow Run Id"
     },
     {
       "parameters": {
@@ -426,10 +462,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1248,
-        880
+        3072,
+        1056
       ],
-      "id": "16ae9663-1c5f-4572-9abf-06e59e6a586b",
+      "id": "6de31732-c348-4f2d-abb2-f7fbfa1d1227",
       "name": "Issue Summary Schema"
     },
     {
@@ -439,10 +475,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1264,
-        592
+        3088,
+        768
       ],
-      "id": "d55f242d-ad45-4250-ac4e-fd5d9ebd45b7",
+      "id": "c1e8ec35-ba84-4951-9fd0-a3cd0e582f27",
       "name": "Release Summary Schema"
     },
     {
@@ -452,10 +488,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1264,
-        736
+        3088,
+        912
       ],
-      "id": "93a7b803-03f4-4b17-a7a0-fb5bae53225c",
+      "id": "0d6ac671-3877-4ce6-96c9-b20621013bc0",
       "name": "Issue Score Schema"
     },
     {
@@ -465,10 +501,10 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        1520,
-        656
+        3344,
+        832
       ],
-      "id": "1f72db62-c829-4aac-8cac-dbefa001b890",
+      "id": "03190007-fc24-478f-8dd4-3c7a3b57e96f",
       "name": "Merge1"
     },
     {
@@ -480,10 +516,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2176,
-        1280
+        4000,
+        1456
       ],
-      "id": "fe336c48-1368-42bf-b34b-4c38eb9a6abb",
+      "id": "2890674f-b7bc-4478-b985-cffee7b6dfb4",
       "name": "Issue Summary Structured Output Parser",
       "retryOnFail": true,
       "alwaysOutputData": false,
@@ -498,10 +534,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1744,
-        1296
+        3568,
+        1472
       ],
-      "id": "801b90c2-e905-4530-92b6-344ad385755e",
+      "id": "25ccd3df-07e3-4a58-a2b7-84b6ba378d96",
       "name": "Issue Score Structured Output Parser",
       "retryOnFail": true,
       "alwaysOutputData": false,
@@ -516,10 +552,10 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1392,
-        1280
+        3216,
+        1456
       ],
-      "id": "77202168-a4d2-48e3-aaf9-e1aa80c309a9",
+      "id": "33db371a-d96e-4d43-ae40-92c52a8ffe2f",
       "name": "Release Summary Structured Output Parser",
       "retryOnFail": true,
       "alwaysOutputData": false,
@@ -534,136 +570,113 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        1712,
-        672
+        3536,
+        848
       ],
-      "id": "c4e48eb2-20bf-401f-9c8a-b7ff0c1cc917",
+      "id": "e73842cb-7a08-4998-b5e0-271086fe1457",
       "name": "Aggregate"
     },
     {
       "parameters": {
-        "content": "# 1. Analyze GitHub Issues for Contributors\n### Evaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
-        "height": 636,
-        "width": 696,
-        "color": 2
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n\t\tquery {\n\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n\t\t\t\tpullRequests(first: 50, states: [MERGED], orderBy: { field: UPDATED_AT, direction: DESC }) {\n\t\t\t\t\tnodes {\n\t\t\t\t\t\turl\n\t\t\t\t\t\tnumber\n\t\t\t\t\t\tauthor {\n\t\t\t\t\t\t\t... on User {\n\t\t\t\t\t\t\t\tlogin\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tclosingIssuesReferences(first: 10) {\n\t\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\tcomments(first: 10) {\n\t\t\ttotalCount\n\t\t}\n\n\t\treviews(first: 10, states: [CHANGES_REQUESTED, COMMENTED, DISMISSED]) {\n\t\t\ttotalCount\n\t\t}\n\n\t\treviewThreads(first: 10) {\n\t\t\tnodes {\n\t\t\t\tcomments(first: 10) {\n\t\t\t\t\ttotalCount\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n",
+        "variables": "="
       },
-      "id": "edab3df1-d987-4d6b-8e3b-37f46bfbe27d",
-      "name": "Sticky Note11",
-      "type": "n8n-nodes-base.stickyNote",
+      "id": "d1874fff-e8df-42ed-a12c-9cc8e193511e",
+      "name": "Fetch Recent Merged PRs",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        1280,
+        864
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = user.replace(/-/g, \"_\");\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1504,
+        864
+      ],
+      "id": "e3fce574-38d1-49b3-9863-39b370c188c3",
+      "name": "Build User Merge Count Query"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "={{ $json.query }}",
+        "variables": "=",
+        "responseFormat": "string"
+      },
+      "id": "096d00f5-96f2-4eb0-8e02-a72ce1fa8f4a",
+      "name": "Fetch Author Merge Counts",
+      "type": "n8n-nodes-base.graphql",
       "position": [
         1728,
-        480
+        864
       ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1376,
-        1472
-      ],
-      "id": "308b1690-11ea-4147-b483-f9e121ca4c10",
-      "name": "OpenRouter Chat Model6",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
       "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
         }
       }
     },
     {
       "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
+        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes;\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[pr.author.login?.replace(/-/g, '_')]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1936,
+        864
+      ],
+      "id": "4b7090bb-0a0f-4178-98a9-eec1b9a9e8a8",
+      "name": "Sort by Priority"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n\t\tquery {\n\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n\t\t\t\tpullRequest(number: {{ $json.sorted[0].number }}) {\n\t\t\t\t\ttitle\n\t\t\t\t\tbody\n\t\t\t\t\tadditions\n\t\t\t\t\tdeletions\n\t\t\t\t\tchangedFiles\n\t\t\t\t\turl\n\t\t\t\t\tauthor {\n\t\t\t\t\t\t... on User {\n\t\t\t\t\t\t\tlogin\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tclosingIssuesReferences(first: 10) {\n\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\ttitle\n\t\t\t\t\t\t\tbody\n\t\t\t\t\t\t\tlabels(first: 5) {\n\t\t\t\t\t\t\t\tnodes { name }\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tcomments(last: 10) {\n\t\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\treviews(last: 10, states: [CHANGES_REQUESTED, COMMENTED, DISMISSED]) {\n\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\tstate \n\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\treviewThreads(last: 10) {\n\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\tcomments(last: 10) {\n\t\t\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\t\t\tpath \n\t\t\t\t\t\t\t\t\tline \n\t\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n",
+        "variables": "="
+      },
+      "id": "bed472c5-1ce8-4526-ad86-c872dfad3772",
+      "name": "Fetch Top PR Details",
+      "type": "n8n-nodes-base.graphql",
       "position": [
         2160,
-        880
+        864
       ],
-      "id": "5fb1db52-412e-429e-abeb-19b241325ebc",
-      "name": "OpenRouter Chat Model",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
       "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
         }
       }
-    },
-    {
-      "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        1744,
-        1472
-      ],
-      "id": "b096d72f-ba10-4909-a6d0-5e6d639cd560",
-      "name": "OpenRouter Chat Model1",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": "openrouter/auto",
-        "options": {
-          "timeout": 300000,
-          "maxRetries": 0
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        2176,
-        1456
-      ],
-      "id": "a054f5c3-08ee-4905-81fb-053aa3296ce3",
-      "name": "OpenRouter Chat Model7",
-      "credentials": {
-        "openRouterApi": {
-          "id": "openRouterApi",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {},
-      "id": "e218e809-b49f-4fc3-b13b-3dafa886260c",
-      "name": "When clicking ‘Execute workflow’",
-      "type": "n8n-nodes-base.manualTrigger",
-      "position": [
-        480,
-        672
-      ],
-      "typeVersion": 1
     },
     {
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\n\nconst parsers = await this.getInputConnectionData('ai_outputParser', 0);\nconst releaseOutputParser = parsers[0];\nconst scoreOutputParser = parsers[1];\nconst summaryOutputParser = parsers[2];\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\nconst issues = repositoryInfo.issues.nodes;\nconst release = repositoryInfo.releases.nodes[0];\n\nconst { owner, name } = $('Load Repo Info').first().json;\n\nconst ReleaseSummarySchema = $('Release Summary Schema').item.json;\nconst IssueScoreSchema = $('Issue Score Schema').item.json;\nconst IssueSummarySchema = $('Issue Summary Schema').item.json;\n\nconst wrappedReleaseSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: ReleaseSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueScoreSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueScoreSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst encoder = encodingForModel(\"gpt-4\");\n\nconst countTokens = (text) => {\n\treturn encoder.encode(JSON.stringify(text)).length;\n};\n\nconst truncateToTokens = (text, maxTokens) => {\n\tconst str = typeof text === 'string' ? text : JSON.stringify(text);\n\tconst tokens = encoder.encode(str);\n\tif (tokens.length <= maxTokens) return str;\n\treturn str.slice(0, Math.floor(str.length * maxTokens / tokens.length));\n};\n\nconst splitIssuesIntoBatches = (issues, maxTokens = 8000) => {\n\tconst batches = [];\n\tlet currentBatch = [];\n\tlet currentTokens = 0;\n\n\tfor (const issue of issues) {\n\t\tconst issueTokens = countTokens(issue);\n\n\t\tif (issueTokens > maxTokens) {\n\t\t\tif (currentBatch.length > 0) {\n\t\t\t\tbatches.push(currentBatch);\n\t\t\t\tcurrentBatch = [];\n\t\t\t\tcurrentTokens = 0;\n\t\t\t}\n\t\t\tbatches.push([issue]);\n\t\t} else if (currentTokens + issueTokens > maxTokens) {\n\t\t\tbatches.push(currentBatch);\n\t\t\tcurrentBatch = [issue];\n\t\t\tcurrentTokens = issueTokens;\n\t\t} else {\n\t\t\tcurrentBatch.push(issue);\n\t\t\tcurrentTokens += issueTokens;\n\t\t}\n\t}\n\n\tif (currentBatch.length > 0) {\n\t\tbatches.push(currentBatch);\n\t}\n\n\treturn batches;\n};\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst createAgentWithMiddleware = (responseSchema) => {\n\tconst agentConfig = {\n\t\tmodel: languageModel,\n\t\tmiddleware: [\n\t\t\tvalidateResponseMiddleware,\n\t\t\tmodelRetryMiddleware({\n\t\t\t\tmaxRetries: 2,\n\t\t\t\tbackoffFactor: 2.0,\n\t\t\t\tinitialDelayMs: 20000,\n\t\t\t\tjitter: true,\n\t\t\t\tonFailure: \"error\",\n\t\t\t}),\n\t\t\tjitterMiddleware,\n\t\t\ttimeoutMiddleware(6 * 60 * 1000),\n\t\t]\n\t};\n\n\tif (responseSchema) {\n\t\tagentConfig.responseFormat = providerStrategy(responseSchema);\n\t}\n\n\treturn createAgent(agentConfig);\n};\n\nconst IssueAnalysisState = Annotation.Root({\n\trelease: Annotation({ default: () => null }),\n\tissues: Annotation({ default: () => [] }),\n\treleaseSummary: Annotation({ default: () => null }),\n\tcurrentBatch: Annotation({ default: () => [] }),\n\tscoredIssues: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalOutput: Annotation({ default: () => null }),\n});\n\nasync function summarizeAndTranslateReleaseNode(state) {\n\tconst truncatedRelease = truncateToTokens(state.release, 8000);\n\tconst releaseAgent = createAgentWithMiddleware(wrappedReleaseSummarySchema);\n\n\tconst prompt = `\n[ROLE]\nYou are an AI assistant that summarizes release notes.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nOutput ONLY the JSON object.\n\n[TRANSLATE EXAMPLE]\nko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n[TASK]\nAnalyze the release notes and categorize key changes.\nFor each category, provide up to 3 compressed descriptions.\nMaximum 3 categories total.\nWrite all descriptions in ko-KR.\n\n[INPUT]\n${JSON.stringify(truncatedRelease, null, 2)}\n\t`.trim();\n\n\tconst result = await releaseAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await releaseOutputParser.parse(aiMessage);\n\n\treturn {\n\t\treleaseSummary: {\n\t\t\t...parsed.output.latestRelease,\n\t\t\turl: state.release.url,\n\t\t\tname: state.release.name\n\t\t}\n\t};\n}\n\nasync function scoreIssuesNode(state) {\n\tconst batch = state.currentBatch;\n\n\tconst batchAgent = createAgentWithMiddleware(wrappedIssueScoreSchema);\n\n\tconst prompt = `\n[ROLE]\nYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nKeep keys in English.\n\n[TASK]\nFor each issue, assign a score from 1-10 based on contribution opportunity criteria.\nProvide 2-4 reasons for each score.\n\n[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n1. Issues with detailed and well-written content\n2. Issues where bug/error logs and reproduction steps are clearly specified\n3. Issues where the location of suspicious source code has been identified\n4. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n5. Issues without an existing PR\n\n[SCORING GUIDE]\n- 9-10: Excellent opportunity (meets most criteria perfectly)\n- 7-8: Good opportunity (meets several criteria well)\n- 5-6: Moderate opportunity (meets some criteria)\n- 3-4: Limited opportunity (meets few criteria)\n- 1-2: Poor opportunity (meets almost no criteria)\n\n[INPUT ISSUES]\n${JSON.stringify(batch, null, 2)}\n\t`.trim();\n\n\tconst result = await batchAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await scoreOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tscoredIssues: parsed.output.scoredIssues\n\t};\n}\n\nasync function summarizeAndTranslateTopIssuesNode(state) {\n\tconst { releaseSummary, scoredIssues, issues } = state;\n\n\tconst issueMap = new Map(issues.map(i => [i.url, i]));\n\n\tconst sortedIssues = [...scoredIssues].sort((a, b) => b.score - a.score);\n\tconst topIssues = sortedIssues.slice(0, Math.min(3, sortedIssues.length)).map(scored => ({\n\t\t...issueMap.get(scored.url),\n\t\t...scored\n\t}));\n\n\tif (topIssues.length === 0) {\n\t\treturn {\n\t\t\tfinalOutput: {\n\t\t\t\ttranslationLanguageCode: process.env.TRANSLATION_LANGUAGE,\n\t\t\t\tlatestRelease: releaseSummary,\n\t\t\t\tissues: []\n\t\t\t}\n\t\t};\n\t}\n\n\tconst aggregateAgent = createAgentWithMiddleware(wrappedIssueSummarySchema);\n\n\tconst prompt = `\n[ROLE]\nYou are an AI assistant that creates detailed summaries for top issues.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nKeep keys in English.\nTranslate all user-facing strings into ko-KR.\n\n[TRANSLATE EXAMPLE]\nko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n[TASK]\nFor each top issue:\n1. Write a concise 1-2 line summary in ko-KR (as array of strings in description)\n2. Assign a level: \"high\" (score 8-10), \"medium\" (score 5-7), or \"low\" (score 1-4)\n3. Provide 2-4 reasons for the classification\n\n[TOP ISSUES TO SUMMARIZE]\n${JSON.stringify(topIssues, null, 2)}\n\n[IMPORTANT]\n- translationLanguageCode must be \"ko-KR\"\n- url must match the pattern: https://github.com/${owner}/${name}/issues/\\\\d+\n\t`.trim();\n\n\tconst result = await aggregateAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await summaryOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tfinalOutput: {\n\t\t\t...parsed.output,\n\t\t\tlatestRelease: releaseSummary\n\t\t}\n\t};\n}\n\nconst workflow = new StateGraph(IssueAnalysisState)\n\t.addNode(\"summarizeAndTranslateRelease\", summarizeAndTranslateReleaseNode)\n\t.addNode(\"scoreIssues\", scoreIssuesNode)\n\t.addNode(\"summarizeAndTranslateTopIssues\", summarizeAndTranslateTopIssuesNode)\n\t.addEdge(START, \"summarizeAndTranslateRelease\")\n\t.addConditionalEdges(\"summarizeAndTranslateRelease\", (state) => {\n\t\tconst batches = splitIssuesIntoBatches(state.issues, 8000);\n\t\treturn batches.map(batch => new Send(\"scoreIssues\", {\n\t\t\t...state,\n\t\t\tcurrentBatch: batch\n\t\t}));\n\t})\n\t.addEdge(\"scoreIssues\", \"summarizeAndTranslateTopIssues\")\n\t.addEdge(\"summarizeAndTranslateTopIssues\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\n\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({\n\t\t\trelease,\n\t\t\tissues\n\t\t});\n\t},\n\t{\n\t\tname: \"Issue Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tissueCount: issues.length,\n\t\t},\n\t},\n)();\n\nreturn [result.finalOutput];"
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\n\nconst parsers = await this.getInputConnectionData('ai_outputParser', 0);\nconst releaseOutputParser = parsers[0];\nconst scoreOutputParser = parsers[1];\nconst summaryOutputParser = parsers[2];\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\nconst issues = repositoryInfo.issues.nodes;\nconst release = repositoryInfo.releases.nodes[0];\n\nconst { owner, name } = $('Load Repo Info').first().json;\n\nconst ReleaseSummarySchema = $('Release Summary Schema').item.json;\nconst IssueScoreSchema = $('Issue Score Schema').item.json;\nconst IssueSummarySchema = $('Issue Summary Schema').item.json;\n\nconst wrappedReleaseSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: ReleaseSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueScoreSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueScoreSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst encoder = encodingForModel(\"gpt-4\");\n\nconst countTokens = (text) => {\n\treturn encoder.encode(JSON.stringify(text)).length;\n};\n\nconst truncateToTokens = (text, maxTokens) => {\n\tconst str = typeof text === 'string' ? text : JSON.stringify(text);\n\tconst tokens = encoder.encode(str);\n\tif (tokens.length <= maxTokens) return str;\n\treturn str.slice(0, Math.floor(str.length * maxTokens / tokens.length));\n};\n\nconst splitIssuesIntoBatches = (issues, maxTokens = 16000) => {\n\tconst batches = [];\n\tlet currentBatch = [];\n\tlet currentTokens = 0;\n\n\tfor (const issue of issues) {\n\t\tconst tokens = countTokens(issue);\n\n\t\tif (tokens > maxTokens) {\n\t\t\tif (currentBatch.length) batches.push(currentBatch);\n\t\t\tbatches.push([issue]);\n\t\t\tcurrentBatch = [];\n\t\t\tcurrentTokens = 0;\n\t\t\tcontinue;\n\t\t}\n\n\t\tif (currentTokens + tokens > maxTokens) {\n\t\t\tbatches.push(currentBatch);\n\t\t\tcurrentBatch = [];\n\t\t\tcurrentTokens = 0;\n\t\t}\n\n\t\tcurrentBatch.push(issue);\n\t\tcurrentTokens += tokens;\n\t}\n\n\tif (currentBatch.length) batches.push(currentBatch);\n\treturn batches;\n};\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst createAgentWithMiddleware = (responseSchema) => {\n\tconst agentConfig = {\n\t\tmodel: languageModel,\n\t\tmiddleware: [\n\t\t\tvalidateResponseMiddleware,\n\t\t\tmodelRetryMiddleware({\n\t\t\t\tmaxRetries: 2,\n\t\t\t\tbackoffFactor: 2.0,\n\t\t\t\tinitialDelayMs: 20000,\n\t\t\t\tjitter: true,\n\t\t\t\tonFailure: \"error\",\n\t\t\t}),\n\t\t\tjitterMiddleware,\n\t\t\ttimeoutMiddleware(6 * 60 * 1000),\n\t\t]\n\t};\n\n\tif (responseSchema) {\n\t\tagentConfig.responseFormat = providerStrategy(responseSchema);\n\t}\n\n\treturn createAgent(agentConfig);\n};\n\nconst IssueAnalysisState = Annotation.Root({\n\trelease: Annotation({ default: () => null }),\n\tissues: Annotation({ default: () => [] }),\n\treleaseSummary: Annotation({ default: () => null }),\n\tcurrentBatch: Annotation({ default: () => [] }),\n\tscoredIssues: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalOutput: Annotation({ default: () => null }),\n});\n\nasync function summarizeAndTranslateReleaseNode(state) {\n\tconst truncatedRelease = truncateToTokens(state.release, 16000);\n\tconst releaseAgent = createAgentWithMiddleware(wrappedReleaseSummarySchema);\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are an AI assistant that summarizes release notes.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tOutput ONLY the JSON object.\n\n\t\t[TRANSLATE EXAMPLE]\n\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t[TASK]\n\t\tAnalyze the release notes and categorize key changes.\n\t\tFor each category, provide up to 3 compressed descriptions.\n\t\tMaximum 3 categories total.\n\t\tWrite all descriptions in ko-KR.\n\n\t\t[INPUT]\n\t\t${JSON.stringify(truncatedRelease, null, 2)}\n\t`.trim();\n\n\tconst result = await releaseAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await releaseOutputParser.parse(aiMessage);\n\n\treturn {\n\t\treleaseSummary: {\n\t\t\t...parsed.output.latestRelease,\n\t\t\turl: state.release.url,\n\t\t\tname: state.release.name\n\t\t}\n\t};\n}\n\nasync function scoreIssuesNode(state) {\n\tconst batch = state.currentBatch;\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tKeep keys in English.\n\n\t\t[TASK]\n\t\tFor each issue, assign a score from 1-10 based on contribution opportunity criteria.\n\t\tProvide 2-4 reasons for each score.\n\n\t\t[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n\t\t1. Issues with detailed and well-written content\n\t\t2. Issues where bug/error logs and reproduction steps are clearly specified\n\t\t3. Issues where the location of suspicious source code has been identified\n\t\t4. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n\t\t5. Issues without an existing PR\n\n\t\t[SCORING GUIDE]\n\t\t- 9-10: Excellent opportunity (meets most criteria perfectly)\n\t\t- 7-8: Good opportunity (meets several criteria well)\n\t\t- 5-6: Moderate opportunity (meets some criteria)\n\t\t- 3-4: Limited opportunity (meets few criteria)\n\t\t- 1-2: Poor opportunity (meets almost no criteria)\n\n\t\t[INPUT ISSUES]\n\t\t${JSON.stringify(batch, null, 2)}\n\t`.trim();\n\n\tconst inputTokenCount = countTokens(prompt);\n\n\tconst batchAgent = createAgentWithMiddleware(wrappedIssueScoreSchema);\n\n\tconst result = await batchAgent.invoke(\n\t\t{ messages: [{ role: \"user\", content: prompt }] },\n\t\t{ metadata: { inputTokenCount, batchSize: batch.length } }\n\t);\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await scoreOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tscoredIssues: parsed.output.scoredIssues\n\t};\n}\n\nasync function summarizeAndTranslateTopIssuesNode(state) {\n\tconst { releaseSummary, scoredIssues, issues } = state;\n\n\tconst issueMap = new Map(issues.map(i => [i.url, i]));\n\n\tconst sortedIssues = [...scoredIssues].sort((a, b) => b.score - a.score);\n\tconst topIssues = sortedIssues.slice(0, Math.min(3, sortedIssues.length)).map(scored => ({\n\t\t...issueMap.get(scored.url),\n\t\t...scored\n\t}));\n\n\tif (topIssues.length === 0) {\n\t\treturn {\n\t\t\tfinalOutput: {\n\t\t\t\ttranslationLanguageCode: process.env.TRANSLATION_LANGUAGE,\n\t\t\t\tlatestRelease: releaseSummary,\n\t\t\t\tissues: []\n\t\t\t}\n\t\t};\n\t}\n\n\tconst aggregateAgent = createAgentWithMiddleware(wrappedIssueSummarySchema);\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are an AI assistant that creates detailed summaries for top issues.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tKeep keys in English.\n\t\tTranslate all user-facing strings into ko-KR.\n\n\t\t[TRANSLATE EXAMPLE]\n\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t[TASK]\n\t\tFor each top issue:\n\t\t1. Write a concise 1-2 line summary in ko-KR (as array of strings in description)\n\t\t2. Assign a level: \"high\" (score 8-10), \"medium\" (score 5-7), or \"low\" (score 1-4)\n\t\t3. Provide 2-4 reasons for the classification\n\n\t\t[TOP ISSUES TO SUMMARIZE]\n\t\t${JSON.stringify(topIssues, null, 2)}\n\n\t\t[IMPORTANT]\n\t\t- translationLanguageCode must be \"ko-KR\"\n\t\t- url must match the pattern: https://github.com/${owner}/${name}/issues/\\\\d+\n\t`.trim();\n\n\tconst result = await aggregateAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await summaryOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tfinalOutput: {\n\t\t\t...parsed.output,\n\t\t\tlatestRelease: releaseSummary\n\t\t}\n\t};\n}\n\nconst workflow = new StateGraph(IssueAnalysisState)\n\t.addNode(\"summarizeAndTranslateRelease\", summarizeAndTranslateReleaseNode)\n\t.addNode(\"scoreIssues\", scoreIssuesNode)\n\t.addNode(\"summarizeAndTranslateTopIssues\", summarizeAndTranslateTopIssuesNode)\n\t.addEdge(START, \"summarizeAndTranslateRelease\")\n\t.addConditionalEdges(\"summarizeAndTranslateRelease\", (state) => {\n\t\tconst batches = splitIssuesIntoBatches(state.issues, 10000);\n\t\treturn batches.map(batch => new Send(\"scoreIssues\", {\n\t\t\t...state,\n\t\t\tcurrentBatch: batch\n\t\t}));\n\t})\n\t.addEdge(\"scoreIssues\", \"summarizeAndTranslateTopIssues\")\n\t.addEdge(\"summarizeAndTranslateTopIssues\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\n\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({\n\t\t\trelease,\n\t\t\tissues\n\t\t});\n\t},\n\t{\n\t\tname: \"Issue Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tissueCount: issues.length,\n\t\t},\n\t},\n)();\n\nreturn [result.finalOutput];"
           }
         },
         "inputs": {
@@ -696,79 +709,308 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        1920,
-        672
+        3744,
+        848
       ],
-      "id": "f7dde20a-471f-4b7c-877d-3d4572b948ce",
+      "id": "49be1657-eba3-4d51-ae19-b6c8ab9de1be",
       "name": "Issue Analysis Langchain Agent"
     },
     {
       "parameters": {
-        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
+        "code": {
+          "execute": {
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\n\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst prData = $('Fetch Top PR Details').item.json.data.repository.pullRequest;\nconst PrAnalysisSchema = $('PR Analysis Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: PrAnalysisSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst userPrompt = `\n\t[ROLE]\n\tYou are an AI assistant that analyzes PR contributions from new open-source contributors. \n\tYour goal is to help other newcomers understand what makes a good contribution.\n\n\t[OUTPUT RULES]\n\tKeep keys in English.\n\tTranslate all user-facing strings into ko-KR.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[TASK]\n\t1) Create 1 analogy to help newcomers understand the PR's purpose.\n\t2) Summarize the PR in 1 concise line - what problem it solves and how.\n\t3) Classify the contribution type based on the changes made.\n\t4) For the first linked issue, create 1 analogy and summarize it in 1 line, then explain why it was good for contribution.\n\t5) Summarize key review feedback in 1 key point.\n\t6) Extract 1 insight for future contributors from review comments.\n\n\t[CONTRIBUTION TYPE CLASSIFICATION]\n\t- \"bug fix\": Fixes a bug or error\n\t- \"feature\": Adds new functionality\n\t- \"docs\": Documentation changes only\n\t- \"refactor\": Code restructuring without behavior change\n\t- \"test\": Adding or modifying tests\n\t- \"chore\": Maintenance tasks, dependency updates, etc.\n\n\t[WHY GOOD FOR CONTRIBUTION CRITERIA]\n\t1. Clear and well-defined issue scope\n\t2. Good first issue label or beginner-friendly tags\n\t3. Clear reproduction steps or requirements\n\t4. Available mentorship or guidance in comments\n\t5. Limited codebase knowledge required\n\n\t[INSIGHTS FOR FUTURE CONTRIBUTORS]\n\tExtract from review comments:\n\t- Code style and formatting requirements\n\t- Testing requirements\n\t- PR description format\n\t- Common mistakes to avoid\n\t- Best practices mentioned by reviewers\n\n\t[OUTPUT FORMAT]\n\t- analogy: 1 analogy to help understand the PR\n\t- summary: 1 concise line\n\t- contributionType: one of the 6 types\n\t- linkedIssue.analogy: 1 analogy to help understand the issue\n\t- linkedIssue.summary: 1 concise line summarizing the issue\n\t- linkedIssue.whyGoodForContribution: 1 reason\n\t- review.summary: 1 key point from reviews\n\t- review.insights: 1 insight for future contributors\n\n\t[INPUT]\n\t[PR DATA]\n\t${JSON.stringify(prData, null, 2)}\n`.trim();\n\nconst encoder = encodingForModel(\"gpt-4\");\nconst inputTokenCount = encoder.encode(userPrompt).length;\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponsePrAnalysisMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await agent.invoke({\n\t\t\tmessages: [{ role: \"user\", content: userPrompt }],\n\t\t});\n\t},\n\t{\n\t\tname: \"PR Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tinputTokenCount,\n\t\t\tprNumber: prData.number,\n\t\t},\n\t},\n)();\n\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\nconst parsedMessage = await outputParser.parse(aiMessage);\nconst firstIssue = prData.closingIssuesReferences?.nodes?.[0];\n\nreturn [{\n\t...parsedMessage.output,\n\ttitle: prData.title,\n\turl: prData.url,\n\tlinkedIssue: parsedMessage.output.linkedIssue ? {\n\t\t...parsedMessage.output.linkedIssue,\n\t\ttitle: firstIssue?.title,\n\t\turl: firstIssue?.url\n\t} : null\n}];"
+          }
+        },
+        "inputs": {
+          "input": [
+            {
+              "type": "ai_outputParser",
+              "maxConnections": 1,
+              "required": true
+            },
+            {
+              "type": "main",
+              "maxConnections": 1,
+              "required": true
+            },
+            {
+              "type": "ai_languageModel",
+              "maxConnections": 1,
+              "required": true
+            }
+          ]
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "main"
+            }
+          ]
+        }
       },
-      "id": "65a6cf44-f7d4-410a-9cc0-8dea20ba204f",
-      "name": "Load Repo Info",
-      "type": "n8n-nodes-base.code",
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
       "position": [
-        640,
-        672
+        2544,
+        864
       ],
-      "typeVersion": 2
+      "id": "0d6c8a2c-f066-4b03-aedf-96589563a345",
+      "name": "PR Analysis Langchain Agent"
     },
     {
       "parameters": {
-        "authentication": "headerAuth",
-        "endpoint": "https://api.github.com/graphql",
-        "query": "=\n    query {\n        repository(owner: \"{{ $json.owner }}\", name: \"{{ $json.name }}\") {\n            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    name\n                    description\n                    createdAt\n\t\t\t\t\t\t\t\t\t\turl\n                }\n            }\n            issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    title\n                    url\n                    body\n                    author {\n                        ... on User {\n                            login\n                        }\n                    }\n                    issueType {\n                        name\n                    }\n                    labels(first: 5) {\n                        edges {\n                            node {\n                                name\n                            }\n                        }\n                    }\n                    comments(first: 10) {\n                        nodes {\n                            body\n                        }\n                    }\n                }\n            }\n        }\n    }\n",
-        "variables": "="
+        "jsCode": "const prAnalysisOutputSchema = {\n\ttitle: \"pr_analysis_output\",\n\tdescription: \"Analysis result of a PR contribution from a new open-source contributor\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tminItems: 1,\n\t\t\tmaxItems: 1,\n\t\t\tdescription: \"An analogy to help newcomers understand the PR's purpose\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tminItems: 1,\n\t\t\tmaxItems: 1,\n\t\t\tdescription: \"1 concise line summarizing what the PR solves and how\"\n\t\t},\n\t\tlinkedIssue: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tanalogy: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"An analogy to help newcomers understand the issue's context\"\n\t\t\t\t},\n\t\t\t\tsummary: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 concise line summarizing the issue\"\n\t\t\t\t},\n\t\t\t\twhyGoodForContribution: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 reason why this issue was good for contribution\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"analogy\", \"summary\", \"whyGoodForContribution\"],\n\t\t\tdescription: \"First linked issue and its analysis\"\n\t\t},\n\t\treview: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\turl: {\n\t\t\t\t\ttype: \"string\",\n\t\t\t\t\tpattern: \"^https://github\\\\.com/[^/]+/[^/]+/pull/\\\\d+#.+$\",\n\t\t\t\t\tdescription: \"URL of the review for verification\"\n\t\t\t\t},\n\t\t\t\tsummary: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 key point from reviews and discussions\"\n\t\t\t\t},\n\t\t\t\tinsights: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 insight for future contributors extracted from review comments\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"url\", \"summary\", \"insights\"],\n\t\t\tdescription: \"Review analysis with summary and insights\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"analogy\", \"summary\", \"linkedIssue\", \"review\"]\n};\nreturn prAnalysisOutputSchema;"
       },
-      "id": "e6c4fe32-ccb9-42d3-886d-b27e5a2be7bd",
-      "name": "Get Issue From Github",
-      "type": "n8n-nodes-base.graphql",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        832,
-        672
+        2384,
+        864
       ],
-      "typeVersion": 1.1,
-      "alwaysOutputData": true,
+      "id": "1b706ba8-0fe4-4115-a878-0a514f58e9f1",
+      "name": "PR Analysis Schema"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $('PR Analysis Schema').item.json.toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2384,
+        1104
+      ],
+      "id": "f9545890-80d3-4545-bd8a-5fa719f99d2f",
+      "name": "PR Analysis Structured Output Parser",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        2656,
+        1040
+      ],
+      "id": "50a85407-8d58-43c3-ab36-10d2e9851249",
+      "name": "OpenRouter Chat Model1",
       "credentials": {
-        "httpHeaderAuth": {
-          "id": "httpHeaderAuth",
-          "name": "Header Auth account"
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const workflowRunId = crypto.randomUUID();\nconst repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst config = {\n\tmetadata: {\n\t\trun_id: workflowRunId,\n\t\trepo: repoInfo,\n\t\temail: \"\",\n\t}\n};\nreturn config"
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
       },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
       "position": [
-        1008,
-        672
+        3216,
+        1632
       ],
-      "id": "dfec3c0b-3968-47b2-b21f-b374e7718563",
-      "name": "Get Workflow Run Id"
+      "id": "2dc19eaa-a5ff-4335-a0d0-e20130af8d08",
+      "name": "OpenRouter Chat Model2",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
     },
     {
       "parameters": {
-        "jsCode": "const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const sortedIssues = $input.first().json.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.suitability.level];\n      const suitabilityB = suitabilityOrder[b.suitability.level];\n      return suitabilityA - suitabilityB\n  }).slice(0, 3);\n\n  return {\n      \"issues\" : sortedIssues\n  }"
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
       },
-      "id": "fbb8cbc4-cb24-42e7-ab56-ad6154f049f8",
-      "name": "get Top Fit Issues",
-      "type": "n8n-nodes-base.code",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
       "position": [
-        2272,
-        672
+        3568,
+        1648
       ],
-      "executeOnce": false,
-      "retryOnFail": false,
-      "typeVersion": 2
+      "id": "18291e9b-73ba-40b8-8503-54559d5383d8",
+      "name": "OpenRouter Chat Model3",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        4000,
+        1632
+      ],
+      "id": "b3b8ce65-415f-4b0d-a314-bd9667e1a569",
+      "name": "OpenRouter Chat Model4",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        3968,
+        1040
+      ],
+      "id": "706450f7-8b4c-430e-86ed-9c561b1691e7",
+      "name": "OpenRouter Chat Model5",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        4496,
+        1328
+      ],
+      "id": "3722aaac-eb44-41db-bb8b-9d49d28ce938",
+      "name": "OpenRouter Chat Model6",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        4832,
+        1120
+      ],
+      "id": "1aaf81f1-d56d-4140-a7f9-152acbd412fe",
+      "name": "OpenRouter Chat Model7",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5440,
+        1312
+      ],
+      "id": "f6bfd368-a4d5-416e-aeb0-c55b006c18ab",
+      "name": "OpenRouter Chat Model8",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "openrouter/auto",
+        "options": {
+          "timeout": 300000,
+          "maxRetries": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        5760,
+        1056
+      ],
+      "id": "10a39d52-f8e9-4a9c-8052-f3537faa7f66",
+      "name": "OpenRouter Chat Model9",
+      "credentials": {
+        "openRouterApi": {
+          "id": "openRouterApi",
+          "name": "OpenRouter account"
+        }
+      }
     }
   ],
   "pinData": {},
   "connections": {
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PR Analysis Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Merge": {
       "main": [
         [
@@ -784,7 +1026,7 @@
       "main": [
         [
           {
-            "node": "Send email",
+            "node": "Make SES v2 Request Body",
             "type": "main",
             "index": 0
           }
@@ -879,45 +1121,82 @@
         ]
       ]
     },
-    "OpenRouter Chat Model2": {
-      "ai_languageModel": [
+    "Make SES v2 Request Body": {
+      "main": [
         [
           {
-            "node": "Deepwiki Structured Output Parser",
-            "type": "ai_languageModel",
+            "node": "AWS SES v2 HTTP Request",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenRouter Chat Model3": {
-      "ai_languageModel": [
+    "When clicking ‘Execute workflow’": {
+      "main": [
         [
           {
-            "node": "Deepwiki Langchain agent",
-            "type": "ai_languageModel",
+            "node": "Load Repo Info",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenRouter Chat Model4": {
-      "ai_languageModel": [
+    "Load Repo Info": {
+      "main": [
         [
           {
-            "node": "Title Generator Structured Output Parser",
-            "type": "ai_languageModel",
+            "node": "Get Workflow Run Id",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "OpenRouter Chat Model5": {
-      "ai_languageModel": [
+    "Get Issue From Github": {
+      "main": [
         [
           {
-            "node": "Title Generator Langchain Agent",
-            "type": "ai_languageModel",
+            "node": "Release Summary Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Issue Score Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Issue Summary Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get Top Fit Issues": {
+      "main": [
+        [
+          {
+            "node": "Deepwiki Response Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workflow Run Id": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recent Merged PRs",
+            "type": "main",
             "index": 0
           }
         ]
@@ -1011,55 +1290,55 @@
         ]
       ]
     },
-    "OpenRouter Chat Model6": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Release Summary Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenRouter Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Analysis Langchain Agent",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenRouter Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Score Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenRouter Chat Model7": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Summary Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When clicking ‘Execute workflow’": {
+    "Fetch Recent Merged PRs": {
       "main": [
         [
           {
-            "node": "Load Repo Info",
+            "node": "Build User Merge Count Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build User Merge Count Query": {
+      "main": [
+        [
+          {
+            "node": "Fetch Author Merge Counts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Author Merge Counts": {
+      "main": [
+        [
+          {
+            "node": "Sort by Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort by Priority": {
+      "main": [
+        [
+          {
+            "node": "Fetch Top PR Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Top PR Details": {
+      "main": [
+        [
+          {
+            "node": "PR Analysis Schema",
             "type": "main",
             "index": 0
           }
@@ -1077,7 +1356,7 @@
         ]
       ]
     },
-    "Load Repo Info": {
+    "PR Analysis Langchain Agent": {
       "main": [
         [
           {
@@ -1088,49 +1367,122 @@
         ]
       ]
     },
-    "Get Issue From Github": {
+    "PR Analysis Schema": {
       "main": [
         [
           {
-            "node": "Get Workflow Run Id",
+            "node": "PR Analysis Langchain Agent",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get Workflow Run Id": {
-      "main": [
+    "PR Analysis Structured Output Parser": {
+      "ai_outputParser": [
         [
           {
-            "node": "Issue Summary Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Release Summary Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Issue Score Schema",
-            "type": "main",
+            "node": "PR Analysis Langchain Agent",
+            "type": "ai_outputParser",
             "index": 0
           }
         ]
       ]
     },
-    "get Top Fit Issues": {
-      "main": [
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
         [
           {
-            "node": "Deepwiki Response Schema",
-            "type": "main",
+            "node": "PR Analysis Langchain Agent",
+            "type": "ai_languageModel",
             "index": 0
-          },
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model2": {
+      "ai_languageModel": [
+        [
           {
-            "node": "Split Out",
-            "type": "main",
+            "node": "Release Summary Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Score Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Summary Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Analysis Langchain Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Deepwiki Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Deepwiki Langchain agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Generator Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Title Generator Langchain Agent",
+            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -1141,7 +1493,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "0440a5df-c6ac-45b8-a789-18060f0ec24a",
+  "versionId": "cb21e2be-03da-4118-9eea-ea750f9722ef",
   "meta": {
     "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96",
     "templateCredsSetupCompleted": true

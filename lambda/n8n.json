@@ -2,68 +2,6 @@
   "name": "Curate Contributor-Friendly Issues with AI and Send GitHub Newsletter via Email copy",
   "nodes": [
     {
-      "parameters": {},
-      "id": "f0427aa1-48aa-487a-98ef-f42b5ea6bffe",
-      "name": "When clicking ‘Execute workflow’",
-      "type": "n8n-nodes-base.manualTrigger",
-      "position": [
-        368,
-        592
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
-      },
-      "id": "ac914444-a804-4da0-b479-6282a656ec03",
-      "name": "Load Repo Info",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        560,
-        592
-      ],
-      "typeVersion": 2
-    },
-    {
-      "parameters": {
-        "authentication": "headerAuth",
-        "endpoint": "https://api.github.com/graphql",
-        "query": "=\n    query {\n        repository(owner: \"{{ $json.owner }}\", name: \"{{ $json.name }}\") {\n            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    name\n                    description\n                    createdAt\n\t\t\t\t\t\t\t\t\t\turl\n                }\n            }\n            issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    title\n                    url\n                    body\n                    author {\n                        ... on User {\n                            login\n                        }\n                    }\n                    issueType {\n                        name\n                    }\n                    labels(first: 5) {\n                        edges {\n                            node {\n                                name\n                            }\n                        }\n                    }\n                    comments(first: 10) {\n                        nodes {\n                            body\n                        }\n                    }\n                }\n            }\n        }\n    }\n",
-        "variables": "="
-      },
-      "id": "a24e69e7-f24b-425f-8623-db39c8e81b3f",
-      "name": "Get Issue From Github",
-      "type": "n8n-nodes-base.graphql",
-      "position": [
-        752,
-        592
-      ],
-      "typeVersion": 1.1,
-      "alwaysOutputData": true,
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "httpHeaderAuth",
-          "name": "Header Auth account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const sortedIssues = $input.first().json.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.issueSuitability.level];\n      const suitabilityB = suitabilityOrder[b.issueSuitability.level];\n      return suitabilityA - suitabilityB\n  }).slice(0, 3);\n\n  return {\n      \"issues\" : sortedIssues\n  }"
-      },
-      "id": "d9fead98-632b-4ede-b96f-d33969ae5a47",
-      "name": "get Top Fit Issues",
-      "type": "n8n-nodes-base.code",
-      "position": [
-        2128,
-        592
-      ],
-      "executeOnce": false,
-      "retryOnFail": false,
-      "typeVersion": 2
-    },
-    {
       "parameters": {
         "mode": "combine",
         "fieldsToMatchString": "url",
@@ -73,8 +11,8 @@
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "position": [
-        3184,
-        608
+        4032,
+        704
       ],
       "executeOnce": false,
       "typeVersion": 3.2
@@ -89,8 +27,8 @@
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -384,
-        656
+        -1392,
+        608
       ],
       "typeVersion": 1
     },
@@ -105,8 +43,8 @@
       "name": "Sticky Note7",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3488,
-        400
+        4336,
+        496
       ],
       "typeVersion": 1
     },
@@ -121,8 +59,8 @@
       "name": "Sticky Note8",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2496,
-        400
+        3344,
+        496
       ],
       "typeVersion": 1
     },
@@ -136,8 +74,8 @@
       "name": "Sticky Note9",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        4160,
-        400
+        5008,
+        496
       ],
       "typeVersion": 1
     },
@@ -151,8 +89,8 @@
       "name": "Sticky Note2",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        -16,
-        80
+        -1024,
+        32
       ],
       "typeVersion": 1
     },
@@ -166,7 +104,7 @@
       "name": "Sticky Note3",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        224,
+        -992,
         1632
       ],
       "typeVersion": 1
@@ -178,8 +116,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4464,
-        608
+        5312,
+        704
       ],
       "id": "36b2de08-ff2b-4728-8396-2d8ec9ad1520",
       "name": "convert MJML to HTML",
@@ -187,13 +125,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.issueTitle}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet issueDescription = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tissueDescription += createBulletedList(issue.issueDescription);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet issueSuitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.issueSuitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tissueSuitability += createBulletedList(issue.issueSuitability.reasons);\n\tissueSuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.issueURL}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + issueDescription +\n\t\trootCause + resolutionApproach + issueSuitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
+        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prData = processData($('PR Analysis Langchain Agent').first().json);\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue?.url}\">${prData.linkedIssue?.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue?.analogy)}\n\t\t${createBulletedList(prData.linkedIssue?.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review?.summary?.[0]} <a href=\"${prData.review?.url}\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review?.insights)}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4240,
-        608
+        5088,
+        704
       ],
       "id": "de11b35d-7f55-41f4-a85b-30cac04f6529",
       "name": "convert MJML",
@@ -204,7 +142,7 @@
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst buildUserPrompt = (deepwikiResponse) => `\n\t[ROLE]\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\t[OUTPUT RULES]\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\tDo not include markdown code blocks in the output.\n\tOutput ONLY the JSON object. No additional text.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[JSON SCHEMA]\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t[TASK]\n\tExtract and return ONLY a JSON object following the exact schema.\n\tPreserve the full length and content of the original text rather than summarizing.\n\n\t[REQUIREMENTS]\n\t- All content must be in \"ko-KR\"\n\t- translationLanguageCode should be \"ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\t[EXAMPLE OUTPUT]\n\t{\n\t\t\"output\": {\n\t\t\t\"translationLanguageCode\": \"en\",\n\t\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\t\"resolutionApproach\": [\n\t\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\t\"Implement event listener removal logic\"\n\t\t\t],\n\t\t\t\"technicalDifficulty\": {\n\t\t\t\t\"level\": \"Medium\",\n\t\t\t\t\"reasons\": [\n\t\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\t\"Need memory profiling experience\"\n\t\t\t\t]\n\t\t\t},\n\t\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t\t}\n\t}\n\n\t[OUTPUT FORMAT]\n\t- Return JSON only\n\t- No extra text\n\n\t[INPUT]\n\tDeepWiki Analysis:\n\t${deepwikiResponse}\n`;\n\nasync function deepwikiToolNode({ issue }) {\n\tconst toolCall = {\n\t\tname: \"ask_question\",\n\t\targs: {\n\t\t\trepoName: repoName,\n\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t Title: ${issue.issueTitle}\n\t\t\t\t Body: ${issue.issueDescription}\n\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t},\n\t\tid: `call_${Date.now()}`,\n\t\ttype: \"tool\"\n\t};\n\tconst aiMessage = new AIMessage({\n\t\tcontent: \"\",\n\t\ttool_calls: [toolCall]\n\t});\n\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\tmessages: [aiMessage]\n\t});\n\treturn { deepwikiResponses: [{ \n\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\tissueURL: issue.issueURL\t\n\t}]};\n}\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseDeepwikiMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nasync function reasonNode({ deepwikiResponse, issueURL }) {\n\tconst userPrompt = buildUserPrompt(deepwikiResponse);\n\tconst reasonResult = await agent.invoke({ messages: [{ role: \"user\", content: userPrompt }] });\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsedMessage = await outputParser.parse(aiMessage);\n\tparsedMessage.output.issueURL = issueURL\n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, issueURL }) => new Send(\"reason\", { deepwikiResponse, issueURL }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({});\n\t},\n\t{ \n\t\tname: \"DeepWiki Analysis\",\n\t\t...config\n\t},\n)();\nreturn result.finalAnswers;"
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { AIMessage } = require(\"@langchain/core/messages\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\nconst { ToolNode } = require(\"@langchain/langgraph/prebuilt\");\nconst { MultiServerMCPClient } = require(\"@langchain/mcp-adapters\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst mcpClient = new MultiServerMCPClient({  \n\tdeepwiki: {\n\t\ttransport: \"http\",\n\t\turl: \"https://mcp.deepwiki.com/mcp\",\n\t},\n});\nconst tools = await mcpClient.getTools()\nconst askQuestionTool = tools.filter(t => t.name === \"ask_question\")[0];\n\nconst MCP_ERROR_CODE = {\n\tPARSE_ERROR: -32700,\n\tINVALID_REQUEST: -32600,\n\tMETHOD_NOT_FOUND: -32601,\n\tINVALID_PARAMS: -32602,\n\tINTERNAL_ERROR: -32603,\n\tSERVER_DEFINED_START: -32000,\n\tSERVER_DEFINED_END: -32099,\n};\n\nconst MCP_SDK_ERROR = {\n\tREQUEST_TIMEOUT: 'RequestTimeout',\n\tCONNECTION_CLOSED: 'ConnectionClosed',\n};\n\nconst isRetryableMcpError = (error) => {\n\tconst errorCode = error.code ?? error.error?.code;\n\tif (errorCode === undefined) return false;\n\t\n\treturn (\n\t\terrorCode === MCP_ERROR_CODE.INTERNAL_ERROR ||\n\t\terrorCode === MCP_SDK_ERROR.REQUEST_TIMEOUT ||\n\t\terrorCode === MCP_SDK_ERROR.CONNECTION_CLOSED ||\n\t\t(typeof errorCode === 'number' && \n\t\t errorCode >= MCP_ERROR_CODE.SERVER_DEFINED_END && \n\t\t errorCode <= MCP_ERROR_CODE.SERVER_DEFINED_START)\n\t);\n};\n\nconst sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));\n\nconst { owner, name } = $('Load Repo Info').item.json;\nconst repoName = `${owner}/${name}`;\nconst issues = $('get Top Fit Issues').item.json.issues;\n\nconst DeepwikiResponseSchema = $('Deepwiki Response Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: DeepwikiResponseSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst buildUserPrompt = (deepwikiResponse) => `\n\t[ROLE]\n\tYou are an AI assistant that processes DeepWiki GitHub issue analysis.\n\t\n\t[OUTPUT RULES]\n\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\tDo not include markdown code blocks in the output.\n\tOutput ONLY the JSON object. No additional text.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[JSON SCHEMA]\n\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t[TASK]\n\tExtract and return ONLY a JSON object following the exact schema.\n\tPreserve the full length and content of the original text rather than summarizing.\n\n\t[REQUIREMENTS]\n\t- All content must be in \"ko-KR\"\n\t- translationLanguageCode should be \"ko-KR\"\n\t- deepwikiLink must start with https://deepwiki.com/\n\t- technicalDifficulty.level must be one of: High, Medium, Low\n\t- keyword should contain 1-5 relevant keywords\n\n\t[EXAMPLE OUTPUT]\n\t{\n\t\t\"output\": {\n\t\t\t\"translationLanguageCode\": \"en\",\n\t\t\t\"deepwikiLink\": \"https://deepwiki.com/search/here-is-a-github-issue-title-s_d2cf1a6c-1109-479c-986c-40cc2fa1f1c1\",\n\t\t\t\"rootCause\": \"Memory leak occurs during component rendering due to missing cleanup\",\n\t\t\t\"resolutionApproach\": [\n\t\t\t\t\"Add useEffect cleanup function\",\n\t\t\t\t\"Implement event listener removal logic\"\n\t\t\t],\n\t\t\t\"technicalDifficulty\": {\n\t\t\t\t\"level\": \"Medium\",\n\t\t\t\t\"reasons\": [\n\t\t\t\t\t\"Requires understanding of React lifecycle\",\n\t\t\t\t\t\"Need memory profiling experience\"\n\t\t\t\t]\n\t\t\t},\n\t\t\t\"summary\": \"Resolve React component memory leak by implementing proper cleanup function\",\n\t\t\t\"keyword\": [\"React\", \"memory leak\", \"useEffect\", \"cleanup\"],\n\t\t\t\"analogy\": \"Like leaving a faucet running - without cleanup, memory keeps leaking continuously\"\n\t\t}\n\t}\n\n\t[OUTPUT FORMAT]\n\t- Return JSON only\n\t- No extra text\n\n\t[INPUT]\n\tDeepWiki Analysis:\n\t${deepwikiResponse}\n`;\n\nasync function deepwikiToolNode({ issue }) {\n\tconst maxRetries = 3;\n\tconst baseDelayMs = 2000;\n\tlet lastError;\n\n\tfor (let attempt = 0; attempt < maxRetries; attempt++) {\n\t\ttry {\n\t\t\tconst toolCall = {\n\t\t\t\tname: \"ask_question\",\n\t\t\t\targs: {\n\t\t\t\t\trepoName: repoName,\n\t\t\t\t\tquestion: `Here is a GitHub issue.\n\t\t\t\t\t\t Title: ${issue.title}\n\t\t\t\t\t\t Body: ${issue.description}\n\t\t\t\t\t\t How can this issue be resolved, what is its root cause, what is the recommended resolution approach, what is the technical difficulty, and what is a simple analogy for the issue and its resolution approach? Please provide the answer in ko-KR.`\n\t\t\t\t},\n\t\t\t\tid: `call_${Date.now()}`,\n\t\t\t\ttype: \"tool\"\n\t\t\t};\n\t\t\tconst aiMessage = new AIMessage({\n\t\t\t\tcontent: \"\",\n\t\t\t\ttool_calls: [toolCall]\n\t\t\t});\n\t\t\tconst result = await new ToolNode([askQuestionTool]).invoke({\n\t\t\t\tmessages: [aiMessage]\n\t\t\t});\n\t\t\treturn { deepwikiResponses: [{ \n\t\t\t\tdeepwikiResponse: result.messages.at(-1)?.content,\n\t\t\t\turl: issue.url\t\n\t\t\t}]};\n\t\t} catch (error) {\n\t\t\tlastError = error;\n\t\t\tif (!isRetryableMcpError(error) || attempt === maxRetries - 1) {\n\t\t\t\tthrow error;\n\t\t\t}\n\t\t\tconst delay = baseDelayMs * Math.pow(2, attempt) + Math.floor(Math.random() * 1000);\n\t\t\tawait sleep(delay);\n\t\t}\n\t}\n\tthrow lastError;\n}\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseDeepwikiMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nasync function reasonNode({ deepwikiResponse, url }) {\n\tconst userPrompt = buildUserPrompt(deepwikiResponse);\n\tconst reasonResult = await agent.invoke({ messages: [{ role: \"user\", content: userPrompt }] });\n\tconst aiMessage = reasonResult.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsedMessage = await outputParser.parse(aiMessage);\n\tparsedMessage.output.url = url \n\treturn { finalAnswers: [parsedMessage.output] };\n}\n\nconst MessagesState = Annotation.Root({\n\tdeepwikiResponses: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalAnswers: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n});\nconst workflow = new StateGraph(MessagesState)\n\t.addNode(\"deepwikiTool\", deepwikiToolNode)\n\t.addNode(\"reason\", reasonNode)\n\t.addConditionalEdges(START, (_state) => {\n\t\treturn issues.map((issue) => new Send(\"deepwikiTool\", { issue }));\n\t})\n\t.addConditionalEdges(\"deepwikiTool\", ({ deepwikiResponses }) => {\n\t\treturn deepwikiResponses.map(({ deepwikiResponse, url }) => new Send(\"reason\", { deepwikiResponse, url }));\n\t})\n\t.addEdge(\"reason\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({});\n\t},\n\t{ \n\t\tname: \"DeepWiki Analysis\",\n\t\t...config\n\t},\n)();\nreturn result.finalAnswers;"
           }
         },
         "inputs": {
@@ -237,8 +175,8 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        2864,
-        688
+        3712,
+        784
       ],
       "id": "e8f85c79-afb3-4921-a108-00060217b4ce",
       "name": "Deepwiki Langchain agent"
@@ -247,7 +185,699 @@
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\n\nconst releaseOutputParser = await this.getInputConnectionData('ai_outputParser', 0);\nconst scoreOutputParser = await this.getInputConnectionData('ai_outputParser', 1);\nconst summaryOutputParser = await this.getInputConnectionData('ai_outputParser', 2);\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\nconst issues = repositoryInfo.issues.nodes;\nconst release = repositoryInfo.releases.nodes[0];\n\nconst { owner, name } = $('Load Repo Info').first().json;\n\nconst ReleaseSummarySchema = $('Release Summary Schema').item.json;\nconst IssueScoreSchema = $('Issue Score Schema').item.json;\nconst IssueSummarySchema = $('Issue Summary Schema').item.json;\n\nconst wrappedReleaseSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: ReleaseSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueScoreSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueScoreSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst encoder = encodingForModel(\"gpt-4\");\n\nconst countTokens = (text) => {\n\treturn encoder.encode(JSON.stringify(text)).length;\n};\n\nconst truncateToTokens = (text, maxTokens) => {\n\tconst str = typeof text === 'string' ? text : JSON.stringify(text);\n\tconst tokens = encoder.encode(str);\n\tif (tokens.length <= maxTokens) return str;\n\treturn str.slice(0, Math.floor(str.length * maxTokens / tokens.length));\n};\n\nconst splitIssuesIntoBatches = (issues, maxTokens = 8000) => {\n\tconst batches = [];\n\tlet currentBatch = [];\n\tlet currentTokens = 0;\n\n\tfor (const issue of issues) {\n\t\tconst issueTokens = countTokens(issue);\n\n\t\tif (issueTokens > maxTokens) {\n\t\t\tif (currentBatch.length > 0) {\n\t\t\t\tbatches.push(currentBatch);\n\t\t\t\tcurrentBatch = [];\n\t\t\t\tcurrentTokens = 0;\n\t\t\t}\n\t\t\tbatches.push([issue]);\n\t\t} else if (currentTokens + issueTokens > maxTokens) {\n\t\t\tbatches.push(currentBatch);\n\t\t\tcurrentBatch = [issue];\n\t\t\tcurrentTokens = issueTokens;\n\t\t} else {\n\t\t\tcurrentBatch.push(issue);\n\t\t\tcurrentTokens += issueTokens;\n\t\t}\n\t}\n\n\tif (currentBatch.length > 0) {\n\t\tbatches.push(currentBatch);\n\t}\n\n\treturn batches;\n};\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst createAgentWithMiddleware = (responseSchema) => {\n\tconst agentConfig = {\n\t\tmodel: languageModel,\n\t\tmiddleware: [\n\t\t\tvalidateResponseMiddleware,\n\t\t\tmodelRetryMiddleware({\n\t\t\t\tmaxRetries: 2,\n\t\t\t\tbackoffFactor: 2.0,\n\t\t\t\tinitialDelayMs: 20000,\n\t\t\t\tjitter: true,\n\t\t\t\tonFailure: \"error\",\n\t\t\t}),\n\t\t\tjitterMiddleware,\n\t\t\ttimeoutMiddleware(6 * 60 * 1000),\n\t\t]\n\t};\n\n\tif (responseSchema) {\n\t\tagentConfig.responseFormat = providerStrategy(responseSchema);\n\t}\n\n\treturn createAgent(agentConfig);\n};\n\nconst IssueAnalysisState = Annotation.Root({\n\trelease: Annotation({ default: () => null }),\n\tissues: Annotation({ default: () => [] }),\n\treleaseSummary: Annotation({ default: () => null }),\n\tcurrentBatch: Annotation({ default: () => [] }),\n\tscoredIssues: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalOutput: Annotation({ default: () => null }),\n});\n\nasync function summarizeAndTranslateReleaseNode(state) {\n\tconst truncatedRelease = truncateToTokens(state.release, 8000);\n\tconst releaseAgent = createAgentWithMiddleware(wrappedReleaseSummarySchema);\n\n\tconst prompt = `\n[ROLE]\nYou are an AI assistant that summarizes release notes.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nOutput ONLY the JSON object.\n\n[TRANSLATE EXAMPLE]\nko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n[TASK]\nAnalyze the release notes and categorize key changes.\nFor each category, provide up to 3 compressed descriptions.\nMaximum 3 categories total.\nWrite all descriptions in ko-KR.\n\n[INPUT]\n${JSON.stringify(truncatedRelease, null, 2)}\n\t`.trim();\n\n\tconst result = await releaseAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await releaseOutputParser.parse(aiMessage);\n\n\treturn {\n\t\treleaseSummary: {\n\t\t\t...parsed.output.latestRelease,\n\t\t\turl: state.release.url,\n\t\t\tname: state.release.name\n\t\t}\n\t};\n}\n\nasync function scoreIssuesNode(state) {\n\tconst batch = state.currentBatch;\n\n\tconst batchAgent = createAgentWithMiddleware(wrappedIssueScoreSchema);\n\n\tconst prompt = `\n[ROLE]\nYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nKeep keys in English.\n\n[TASK]\nFor each issue, assign a score from 1-10 based on contribution opportunity criteria.\nProvide 2-4 reasons for each score.\n\n[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n1. Issues with detailed and well-written content\n2. Issues where bug/error logs and reproduction steps are clearly specified\n3. Issues where the location of suspicious source code has been identified\n4. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n5. Issues without an existing PR\n\n[SCORING GUIDE]\n- 9-10: Excellent opportunity (meets most criteria perfectly)\n- 7-8: Good opportunity (meets several criteria well)\n- 5-6: Moderate opportunity (meets some criteria)\n- 3-4: Limited opportunity (meets few criteria)\n- 1-2: Poor opportunity (meets almost no criteria)\n\n[INPUT ISSUES]\n${JSON.stringify(batch, null, 2)}\n\t`.trim();\n\n\tconst result = await batchAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await scoreOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tscoredIssues: parsed.output.scoredIssues\n\t};\n}\n\nasync function summarizeAndTranslateTopIssuesNode(state) {\n\tconst { releaseSummary, scoredIssues, issues } = state;\n\n\tconst issueMap = new Map(issues.map(i => [i.url, i]));\n\n\tconst sortedIssues = [...scoredIssues].sort((a, b) => b.score - a.score);\n\tconst topIssues = sortedIssues.slice(0, Math.min(3, sortedIssues.length)).map(scored => ({\n\t\t...issueMap.get(scored.url),\n\t\t...scored\n\t}));\n\n\tif (topIssues.length === 0) {\n\t\treturn {\n\t\t\tfinalOutput: {\n\t\t\t\ttranslationLanguageCode: process.env.TRANSLATION_LANGUAGE,\n\t\t\t\tlatestRelease: releaseSummary,\n\t\t\t\tissues: []\n\t\t\t}\n\t\t};\n\t}\n\n\tconst aggregateAgent = createAgentWithMiddleware(wrappedIssueSummarySchema);\n\n\tconst prompt = `\n[ROLE]\nYou are an AI assistant that creates detailed summaries for top issues.\n\n[OUTPUT RULES]\nYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\nDo not include markdown code blocks in the output.\nKeep keys in English.\nTranslate all user-facing strings into ko-KR.\n\n[TRANSLATE EXAMPLE]\nko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n[TASK]\nFor each top issue:\n1. Write a concise 1-2 line summary in ko-KR (as array of strings in description)\n2. Assign a level: \"high\" (score 8-10), \"medium\" (score 5-7), or \"low\" (score 1-4)\n3. Provide 2-4 reasons for the classification\n\n[TOP ISSUES TO SUMMARIZE]\n${JSON.stringify(topIssues, null, 2)}\n\n[IMPORTANT]\n- translationLanguageCode must be \"ko-KR\"\n- url must match the pattern: https://github.com/${owner}/${name}/issues/\\\\d+\n\t`.trim();\n\n\tconst result = await aggregateAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await summaryOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tfinalOutput: {\n\t\t\t...parsed.output,\n\t\t\tlatestRelease: releaseSummary\n\t\t}\n\t};\n}\n\nconst workflow = new StateGraph(IssueAnalysisState)\n\t.addNode(\"summarizeAndTranslateRelease\", summarizeAndTranslateReleaseNode)\n\t.addNode(\"scoreIssues\", scoreIssuesNode)\n\t.addNode(\"summarizeAndTranslateTopIssues\", summarizeAndTranslateTopIssuesNode)\n\t.addEdge(START, \"summarizeAndTranslateRelease\")\n\t.addConditionalEdges(\"summarizeAndTranslateRelease\", (state) => {\n\t\tconst batches = splitIssuesIntoBatches(state.issues, 8000);\n\t\treturn batches.map(batch => new Send(\"scoreIssues\", {\n\t\t\t...state,\n\t\t\tcurrentBatch: batch\n\t\t}));\n\t})\n\t.addEdge(\"scoreIssues\", \"summarizeAndTranslateTopIssues\")\n\t.addEdge(\"summarizeAndTranslateTopIssues\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\n\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({\n\t\t\trelease,\n\t\t\tissues\n\t\t});\n\t},\n\t{\n\t\tname: \"Issue Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tissueCount: issues.length,\n\t\t},\n\t},\n)();\n\nreturn [result.finalOutput];"
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nconst issue = $('Merge').first().json;\n\nconst NewsletterTitleSchema = $('Title Generator Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: NewsletterTitleSchema \n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst userPrompt = `\n\t\t\t[ROLE]\n\t\t\tYou are an AI assistant who creates newsletter titles based on GitHub issues.\n\n\t\t\t[OUTPUT RULES]\n\t\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\t\t\tDo not include markdown code blocks in the output.\n\t\t\tTranslate all user-facing string values into ko-KR. Keep the keys in English.\n\n\t\t\t[TRANSLATE EXAMPLE]\n\t\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t\t[JSON SCHEMA]\n\t\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t\t\t[TASK]\n\t\t\t1. Read the provided GitHub issue.\n\t\t\t2. Generate a short, catchy newsletter title.\n\t\t\t3. The title should meet these criteria:\n\t\t\t\t\t- Include a relevant emoji at the beginning.\n\t\t\t\t\t- Be easy for a non-technical audience to understand.\n\t\t\t\t\t- Be fun and intriguing to maximize open rates.\n\t\t\t4. Translate the final title into ko-KR.\n\n\t\t\t[INPUT]\n\t\t\tPlease create a newsletter title for the issue below.\n\n\t\t\t### Issue\n\t\t\tTitle: ${issue.title}\n\t\t\tBody: ${issue.description}\n\t\t\tSummary: ${issue.summary}\n\t\t\tAnalogy: ${issue.analogy}\n\n\t\t\tOutput:\n\t`;\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseTitleMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 20000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await agent.invoke({ \n\t\t\tmessages: [{ role: \"user\", content: userPrompt }],\n\t\t});\n\t},\n\t{ \n\t\tname: \"Title Generation\",\n\t\t...config\n\t},\n)();\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\nconst parsedMessage = await outputParser.parse(aiMessage)\nreturn [parsedMessage.output];"
+          }
+        },
+        "inputs": {
+          "input": [
+            {
+              "type": "ai_outputParser",
+              "maxConnections": 1,
+              "required": true
+            },
+            {
+              "type": "main",
+              "maxConnections": 1,
+              "required": true
+            },
+            {
+              "type": "ai_languageModel",
+              "maxConnections": 1,
+              "required": true
+            }
+          ]
+        },
+        "outputs": {
+          "output": [
+            {
+              "type": "main"
+            }
+          ]
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.code",
+      "typeVersion": 1,
+      "position": [
+        4592,
+        704
+      ],
+      "id": "93c69f30-844c-4a0e-8e1b-2a1c2852faad",
+      "name": "Title Generator Langchain Agent"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "issues",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        640
+      ],
+      "id": "3bc31e74-50fd-4b41-8927-a6deb5f688c4",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {
+        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"High\", \"Medium\", \"Low\"],\n\t\t\tdescription: \"High | Medium | Low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"array\",\n\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3472,
+        784
+      ],
+      "id": "ea8e1a37-e31a-410c-8fda-2cc887c62f04",
+      "name": "Deepwiki Response Schema",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $json.toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        3424,
+        992
+      ],
+      "id": "008e4a4e-08f4-4884-b2b2-4bac7d672f0b",
+      "name": "Deepwiki Structured Output Parser",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 3
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $json.toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        4368,
+        976
+      ],
+      "id": "dd67528b-5bb7-4c62-9ee0-f1278a678163",
+      "name": "Title Generator Structured Output Parser",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n\t\ttitle: \"newsletter_title_output\",\n\t\tdescription: \"Generated newsletter title based on GitHub issue\",\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\t\ttranslationLanguageCode: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Language code\"\n\t\t\t\t},\n\t\t\t\ttitle: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Catchy newsletter title with emoji, translated to target language\"\n\t\t\t\t}\n\t\t},\n\t\trequired: [\"translationLanguageCode\", \"title\"]\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4400,
+        704
+      ],
+      "id": "7de65c31-96a4-4248-9159-61f2e398c227",
+      "name": "Title Generator Schema",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://email.ap-northeast-2.amazonaws.com/v2/email/outbound-emails",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "aws",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.jsonString }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        5712,
+        704
+      ],
+      "id": "760f043a-1445-4ebf-a504-cae47b9a850b",
+      "name": "AWS SES v2 HTTP Request",
+      "credentials": {
+        "aws": {
+          "id": "aws",
+          "name": "AWS (IAM) account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst title = $('Title Generator Langchain Agent').first().json.title;\nconst requestBody = {\n\tFromEmailAddress: \"noreply@kirrin.link\",\n\tDestination: { ToAddresses: [\"\"] },\n\tContent: {\n\t\tSimple: {\n\t\t\tSubject: { Data: `[Issue Report] ${repoInfo} - ${title}`, Charset: \"UTF-8\" },\n\t\t\tBody: {\n\t\t\t\tHtml: { \n\t\t\t\t\tData: $input.first().json.htmlOutput.html,\n\t\t\t\t\tCharset: \"UTF-8\" \n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n};\n\nconst jsonString = JSON.stringify(requestBody);\n\nreturn { jsonString }"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5520,
+        704
+      ],
+      "id": "ea1dc579-fbf1-48bf-bb79-acadc6def8ac",
+      "name": "Make SES v2 Request Body"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3408,
+        1184
+      ],
+      "id": "a43aaf73-0b72-446f-8629-6d358aa95d91",
+      "name": "OpenAI Chat Model2",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        3760,
+        1024
+      ],
+      "id": "29c0d234-ebd3-47c5-8242-df81c67be923",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4368,
+        1168
+      ],
+      "id": "b2eb428d-a957-4d4f-b91f-ecbab3f394b5",
+      "name": "OpenAI Chat Model4",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        4672,
+        944
+      ],
+      "id": "88552d15-5dbb-4490-a135-dc0399cc2b02",
+      "name": "OpenAI Chat Model5",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "e97885a3-f308-40fc-9b73-8d0c3097b2fb",
+      "name": "When clicking ‘Execute workflow’",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -352,
+        720
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
+      },
+      "id": "21efde81-2999-4639-856c-b180f0055a83",
+      "name": "Load Repo Info",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        -160,
+        720
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n    query {\n\t\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n            releases (first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    name\n                    description\n                    createdAt\n\t\t\t\t\t\t\t\t\t\turl\n                }\n            }\n            issues(first: 10, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {\n                nodes {\n                    title\n                    url\n                    body\n                    author {\n                        ... on User {\n                            login\n                        }\n                    }\n                    issueType {\n                        name\n                    }\n                    labels(first: 5) {\n                        edges {\n                            node {\n                                name\n                            }\n                        }\n                    }\n                    comments(first: 10) {\n                        nodes {\n                            body\n                        }\n                    }\n                }\n            }\n        }\n    }\n",
+        "variables": "="
+      },
+      "id": "089bf0f7-dd1a-4b14-adbc-b6367fa1cb7c",
+      "name": "Get Issue From Github",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        1792,
+        720
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const suitabilityOrder = { 'high': 0, 'medium': 1, 'low': 2 };\n  const sortedIssues = $input.first().json.issues.sort((a, b) => {\n      const suitabilityA = suitabilityOrder[a.suitability.level];\n      const suitabilityB = suitabilityOrder[b.suitability.level];\n      return suitabilityA - suitabilityB\n  }).slice(0, 3);\n\n  return {\n      \"issues\" : sortedIssues\n  }"
+      },
+      "id": "ae2a3782-f7c1-46c3-8025-91b726a3cd52",
+      "name": "get Top Fit Issues",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        3024,
+        704
+      ],
+      "executeOnce": false,
+      "retryOnFail": false,
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "content": "# 1. Analyze GitHub Issues for Contributors\n### Evaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
+        "height": 636,
+        "width": 696,
+        "color": 2
+      },
+      "id": "82075140-474c-4ee3-ae32-146c8ba9ea5b",
+      "name": "Sticky Note10",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2480,
+        512
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowRunId = crypto.randomUUID();\nconst repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst config = {\n\tmetadata: {\n\t\trun_id: workflowRunId,\n\t\trepo: repoInfo,\n\t\temail: \"\",\n\t}\n};\nreturn config"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        32,
+        720
+      ],
+      "id": "1e09a5f5-858d-47f2-a7b3-868510258eb2",
+      "name": "Get Workflow Run Id"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2928,
+        1488
+      ],
+      "id": "15abef5f-a822-4486-89a1-d327b4c9ec0e",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2928,
+        928
+      ],
+      "id": "6f75e8b8-ee4b-486e-9834-2b405232e4f3",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        1488
+      ],
+      "id": "cd964ef5-ecc0-4fc0-ba6a-53221f358f28",
+      "name": "OpenAI Chat Model6",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "hf:openai/gpt-oss-120b",
+          "mode": "list",
+          "cachedResultName": "hf:openai/gpt-oss-120b"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        2128,
+        1472
+      ],
+      "id": "395073b6-5553-4061-afbc-fc51797507e4",
+      "name": "OpenAI Chat Model7",
+      "credentials": {
+        "openAiApi": {
+          "id": "openAiApi",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueSummaryOutputSchema = {\n\ttitle: \"issue_summary_output\",\n\tdescription: \"Summary result of GitHub issues\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tissues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\ttitle: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Issue title\"\n\t\t\t\t\t},\n\t\t\t\t\turl: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tdescription: {\n\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\tdescription: \"A 1-2 line concise summary of the original issue description capturing the core problem or feature request (NOT a verbatim copy)\"\n\t\t\t\t\t},\n\t\t\t\t\tsuitability: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tlevel: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tenum: [\"high\", \"medium\", \"low\"],\n\t\t\t\t\t\t\t\tdescription: \"Contribution opportunity level\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\treasons: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Reasons for the level\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"level\", \"reasons\"]\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"title\", \"url\", \"description\", \"suitability\"]\n\t\t\t},\n\t\t\tdescription: \"Top 3-5 suitable issues\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"issues\"]\n};\nreturn issueSummaryOutputSchema;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        912
+      ],
+      "id": "1e915c44-cbc5-4404-b65c-acd9ac8fecdb",
+      "name": "Issue Summary Schema"
+    },
+    {
+      "parameters": {
+        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        624
+      ],
+      "id": "fe728300-6258-4452-9fdd-8b47239bf5ad",
+      "name": "Release Summary Schema"
+    },
+    {
+      "parameters": {
+        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueScoreOutputSchema = {\n\ttitle: \"issue_score_output\",\n\tdescription: \"Score result for GitHub issues\",\n\ttype: \"object\",\n\tproperties: {\n\t\tscoredIssues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\turl: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tscore: {\n\t\t\t\t\t\ttype: \"integer\",\n\t\t\t\t\t\tminimum: 1,\n\t\t\t\t\t\tmaximum: 10,\n\t\t\t\t\t\tdescription: \"Score from 1-10 based on contribution opportunity criteria\"\n\t\t\t\t\t},\n\t\t\t\t\treasons: {\n\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\tminItems: 2,\n\t\t\t\t\t\tmaxItems: 4,\n\t\t\t\t\t\tdescription: \"2-4 reasons explaining the score\"\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"url\", \"score\", \"reasons\"]\n\t\t\t},\n\t\t\tdescription: \"Array of scored issues\"\n\t\t}\n\t},\n\trequired: [\"scoredIssues\"]\n};\nreturn issueScoreOutputSchema;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        768
+      ],
+      "id": "2f3239d2-3406-4436-99e9-f5e61d246504",
+      "name": "Issue Score Schema"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2272,
+        688
+      ],
+      "id": "c901473e-36fa-4ee6-96a3-4790fd3ec4b9",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $('Aggregate').first().json.data[2].toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2928,
+        1312
+      ],
+      "id": "d39fdea2-8fc7-4a27-9fee-5cf7750a284b",
+      "name": "Issue Summary Structured Output Parser",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $('Aggregate').first().json.data[1].toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2496,
+        1328
+      ],
+      "id": "0790acc1-cbb6-49b3-9d54-9f1b0fff7c12",
+      "name": "Issue Score Structured Output Parser",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={{ $('Aggregate').first().json.data[0].toJsonString() }}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        2144,
+        1312
+      ],
+      "id": "6d41acbb-d835-413b-a2a1-dd7071853b62",
+      "name": "Release Summary Structured Output Parser",
+      "retryOnFail": true,
+      "alwaysOutputData": false,
+      "waitBetweenTries": 5000,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2464,
+        704
+      ],
+      "id": "49fcd005-8a72-4601-8c4a-1d89996ae500",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n\t\tquery {\n\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n\t\t\t\tpullRequests(first: 50, states: [MERGED], orderBy: { field: UPDATED_AT, direction: DESC }) {\n\t\t\t\t\tnodes {\n\t\t\t\t\t\turl\n\t\t\t\t\t\tnumber\n\t\t\t\t\t\tauthor {\n\t\t\t\t\t\t\t... on User {\n\t\t\t\t\t\t\t\tlogin\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t\tclosingIssuesReferences(first: 10) {\n\t\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\tcomments(first: 10) {\n\t\t\ttotalCount\n\t\t}\n\n\t\treviews(first: 10, states: [CHANGES_REQUESTED, COMMENTED, DISMISSED]) {\n\t\t\ttotalCount\n\t\t}\n\n\t\treviewThreads(first: 10) {\n\t\t\tnodes {\n\t\t\t\tcomments(first: 10) {\n\t\t\t\t\ttotalCount\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n",
+        "variables": "="
+      },
+      "id": "16c334f9-a42b-4f4c-83b9-b6b1808d79a2",
+      "name": "Fetch Recent Merged PRs",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        208,
+        720
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = user.replace(/-/g, \"_\");\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        432,
+        720
+      ],
+      "id": "04a99e08-212b-4290-aab2-f920186f8290",
+      "name": "Build User Merge Count Query"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "={{ $json.query }}",
+        "variables": "=",
+        "responseFormat": "string"
+      },
+      "id": "560f8cbd-4ba7-47a2-aaae-631b695a774c",
+      "name": "Fetch Author Merge Counts",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        656,
+        720
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes;\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[pr.author.login?.replace(/-/g, '_')]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        720
+      ],
+      "id": "e8de8256-7f89-443b-9a54-dc5c40cd643c",
+      "name": "Sort by Priority"
+    },
+    {
+      "parameters": {
+        "authentication": "headerAuth",
+        "endpoint": "https://api.github.com/graphql",
+        "query": "=\n\t\tquery {\n\t\t\trepository(owner: \"{{ $('Load Repo Info').item.json.owner }}\", name: \"{{ $('Load Repo Info').item.json.name }}\") {\n\t\t\t\tpullRequest(number: {{ $json.sorted[0].number }}) {\n\t\t\t\t\ttitle\n\t\t\t\t\tbody\n\t\t\t\t\tadditions\n\t\t\t\t\tdeletions\n\t\t\t\t\tchangedFiles\n\t\t\t\t\turl\n\t\t\t\t\tauthor {\n\t\t\t\t\t\t... on User {\n\t\t\t\t\t\t\tlogin\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tclosingIssuesReferences(first: 10) {\n\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\ttitle\n\t\t\t\t\t\t\tbody\n\t\t\t\t\t\t\tlabels(first: 5) {\n\t\t\t\t\t\t\t\tnodes { name }\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\tcomments(last: 10) {\n\t\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\treviews(last: 10, states: [CHANGES_REQUESTED, COMMENTED, DISMISSED]) {\n\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\tstate \n\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t\treviewThreads(last: 10) {\n\t\t\t\t\t\tnodes {\n\t\t\t\t\t\t\tcomments(last: 10) {\n\t\t\t\t\t\t\t\tnodes { \n\t\t\t\t\t\t\t\t\tbody \n\t\t\t\t\t\t\t\t\tpath \n\t\t\t\t\t\t\t\t\tline \n\t\t\t\t\t\t\t\t\turl\n\t\t\t\t\t\t\t\t\tauthor { login }\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t}\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t}\n",
+        "variables": "="
+      },
+      "id": "36d5c4ec-e7d5-404d-af8e-e582d2f5a978",
+      "name": "Fetch Top PR Details",
+      "type": "n8n-nodes-base.graphql",
+      "position": [
+        1088,
+        720
+      ],
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "httpHeaderAuth",
+          "name": "Header Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "code": {
+          "execute": {
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\nconst { StateGraph, START, END, Annotation, Send } = require(\"@langchain/langgraph\");\n\nconst parsers = await this.getInputConnectionData('ai_outputParser', 0);\nconst releaseOutputParser = parsers[0];\nconst scoreOutputParser = parsers[1];\nconst summaryOutputParser = parsers[2];\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst repositoryInfo = $('Get Issue From Github').item.json.data.repository;\nconst issues = repositoryInfo.issues.nodes;\nconst release = repositoryInfo.releases.nodes[0];\n\nconst { owner, name } = $('Load Repo Info').first().json;\n\nconst ReleaseSummarySchema = $('Release Summary Schema').item.json;\nconst IssueScoreSchema = $('Issue Score Schema').item.json;\nconst IssueSummarySchema = $('Issue Summary Schema').item.json;\n\nconst wrappedReleaseSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: ReleaseSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueScoreSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueScoreSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst wrappedIssueSummarySchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: IssueSummarySchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst encoder = encodingForModel(\"gpt-4\");\n\nconst countTokens = (text) => {\n\treturn encoder.encode(JSON.stringify(text)).length;\n};\n\nconst truncateToTokens = (text, maxTokens) => {\n\tconst str = typeof text === 'string' ? text : JSON.stringify(text);\n\tconst tokens = encoder.encode(str);\n\tif (tokens.length <= maxTokens) return str;\n\treturn str.slice(0, Math.floor(str.length * maxTokens / tokens.length));\n};\n\nconst splitIssuesIntoBatches = (issues, maxTokens = 16000) => {\n\tconst batches = [];\n\tlet currentBatch = [];\n\tlet currentTokens = 0;\n\n\tfor (const issue of issues) {\n\t\tconst tokens = countTokens(issue);\n\n\t\tif (tokens > maxTokens) {\n\t\t\tif (currentBatch.length) batches.push(currentBatch);\n\t\t\tbatches.push([issue]);\n\t\t\tcurrentBatch = [];\n\t\t\tcurrentTokens = 0;\n\t\t\tcontinue;\n\t\t}\n\n\t\tif (currentTokens + tokens > maxTokens) {\n\t\t\tbatches.push(currentBatch);\n\t\t\tcurrentBatch = [];\n\t\t\tcurrentTokens = 0;\n\t\t}\n\n\t\tcurrentBatch.push(issue);\n\t\tcurrentTokens += tokens;\n\t}\n\n\tif (currentBatch.length) batches.push(currentBatch);\n\treturn batches;\n};\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst createAgentWithMiddleware = (responseSchema) => {\n\tconst agentConfig = {\n\t\tmodel: languageModel,\n\t\tmiddleware: [\n\t\t\tvalidateResponseMiddleware,\n\t\t\tmodelRetryMiddleware({\n\t\t\t\tmaxRetries: 2,\n\t\t\t\tbackoffFactor: 2.0,\n\t\t\t\tinitialDelayMs: 20000,\n\t\t\t\tjitter: true,\n\t\t\t\tonFailure: \"error\",\n\t\t\t}),\n\t\t\tjitterMiddleware,\n\t\t\ttimeoutMiddleware(6 * 60 * 1000),\n\t\t]\n\t};\n\n\tif (responseSchema) {\n\t\tagentConfig.responseFormat = providerStrategy(responseSchema);\n\t}\n\n\treturn createAgent(agentConfig);\n};\n\nconst IssueAnalysisState = Annotation.Root({\n\trelease: Annotation({ default: () => null }),\n\tissues: Annotation({ default: () => [] }),\n\treleaseSummary: Annotation({ default: () => null }),\n\tcurrentBatch: Annotation({ default: () => [] }),\n\tscoredIssues: Annotation({\n\t\treducer: (current, update) => current.concat(update),\n\t\tdefault: () => [],\n\t}),\n\tfinalOutput: Annotation({ default: () => null }),\n});\n\nasync function summarizeAndTranslateReleaseNode(state) {\n\tconst truncatedRelease = truncateToTokens(state.release, 16000);\n\tconst releaseAgent = createAgentWithMiddleware(wrappedReleaseSummarySchema);\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are an AI assistant that summarizes release notes.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tOutput ONLY the JSON object.\n\n\t\t[TRANSLATE EXAMPLE]\n\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t[TASK]\n\t\tAnalyze the release notes and categorize key changes.\n\t\tFor each category, provide up to 3 compressed descriptions.\n\t\tMaximum 3 categories total.\n\t\tWrite all descriptions in ko-KR.\n\n\t\t[INPUT]\n\t\t${JSON.stringify(truncatedRelease, null, 2)}\n\t`.trim();\n\n\tconst result = await releaseAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await releaseOutputParser.parse(aiMessage);\n\n\treturn {\n\t\treleaseSummary: {\n\t\t\t...parsed.output.latestRelease,\n\t\t\turl: state.release.url,\n\t\t\tname: state.release.name\n\t\t}\n\t};\n}\n\nasync function scoreIssuesNode(state) {\n\tconst batch = state.currentBatch;\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are a 10-year experienced developer with extensive open-source contribution experience.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tKeep keys in English.\n\n\t\t[TASK]\n\t\tFor each issue, assign a score from 1-10 based on contribution opportunity criteria.\n\t\tProvide 2-4 reasons for each score.\n\n\t\t[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n\t\t1. Issues with detailed and well-written content\n\t\t2. Issues where bug/error logs and reproduction steps are clearly specified\n\t\t3. Issues where the location of suspicious source code has been identified\n\t\t4. Issues with \"good first issue\" label (no \"blocked\" or \"wait-for-triage\" labels)\n\t\t5. Issues without an existing PR\n\n\t\t[SCORING GUIDE]\n\t\t- 9-10: Excellent opportunity (meets most criteria perfectly)\n\t\t- 7-8: Good opportunity (meets several criteria well)\n\t\t- 5-6: Moderate opportunity (meets some criteria)\n\t\t- 3-4: Limited opportunity (meets few criteria)\n\t\t- 1-2: Poor opportunity (meets almost no criteria)\n\n\t\t[INPUT ISSUES]\n\t\t${JSON.stringify(batch, null, 2)}\n\t`.trim();\n\n\tconst inputTokenCount = countTokens(prompt);\n\n\tconst batchAgent = createAgentWithMiddleware(wrappedIssueScoreSchema);\n\n\tconst result = await batchAgent.invoke(\n\t\t{ messages: [{ role: \"user\", content: prompt }] },\n\t\t{ metadata: { inputTokenCount, batchSize: batch.length } }\n\t);\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await scoreOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tscoredIssues: parsed.output.scoredIssues\n\t};\n}\n\nasync function summarizeAndTranslateTopIssuesNode(state) {\n\tconst { releaseSummary, scoredIssues, issues } = state;\n\n\tconst issueMap = new Map(issues.map(i => [i.url, i]));\n\n\tconst sortedIssues = [...scoredIssues].sort((a, b) => b.score - a.score);\n\tconst topIssues = sortedIssues.slice(0, Math.min(3, sortedIssues.length)).map(scored => ({\n\t\t...issueMap.get(scored.url),\n\t\t...scored\n\t}));\n\n\tif (topIssues.length === 0) {\n\t\treturn {\n\t\t\tfinalOutput: {\n\t\t\t\ttranslationLanguageCode: process.env.TRANSLATION_LANGUAGE,\n\t\t\t\tlatestRelease: releaseSummary,\n\t\t\t\tissues: []\n\t\t\t}\n\t\t};\n\t}\n\n\tconst aggregateAgent = createAgentWithMiddleware(wrappedIssueSummarySchema);\n\n\tconst prompt = `\n\t\t[ROLE]\n\t\tYou are an AI assistant that creates detailed summaries for top issues.\n\n\t\t[OUTPUT RULES]\n\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\tDo not include markdown code blocks in the output.\n\t\tKeep keys in English.\n\t\tTranslate all user-facing strings into ko-KR.\n\n\t\t[TRANSLATE EXAMPLE]\n\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t[TASK]\n\t\tFor each top issue:\n\t\t1. Write a concise 1-2 line summary in ko-KR (as array of strings in description)\n\t\t2. Assign a level: \"high\" (score 8-10), \"medium\" (score 5-7), or \"low\" (score 1-4)\n\t\t3. Provide 2-4 reasons for the classification\n\n\t\t[TOP ISSUES TO SUMMARIZE]\n\t\t${JSON.stringify(topIssues, null, 2)}\n\n\t\t[IMPORTANT]\n\t\t- translationLanguageCode must be \"ko-KR\"\n\t\t- url must match the pattern: https://github.com/${owner}/${name}/issues/\\\\d+\n\t`.trim();\n\n\tconst result = await aggregateAgent.invoke({\n\t\tmessages: [{ role: \"user\", content: prompt }]\n\t});\n\n\tconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\n\tconst parsed = await summaryOutputParser.parse(aiMessage);\n\n\treturn {\n\t\tfinalOutput: {\n\t\t\t...parsed.output,\n\t\t\tlatestRelease: releaseSummary\n\t\t}\n\t};\n}\n\nconst workflow = new StateGraph(IssueAnalysisState)\n\t.addNode(\"summarizeAndTranslateRelease\", summarizeAndTranslateReleaseNode)\n\t.addNode(\"scoreIssues\", scoreIssuesNode)\n\t.addNode(\"summarizeAndTranslateTopIssues\", summarizeAndTranslateTopIssuesNode)\n\t.addEdge(START, \"summarizeAndTranslateRelease\")\n\t.addConditionalEdges(\"summarizeAndTranslateRelease\", (state) => {\n\t\tconst batches = splitIssuesIntoBatches(state.issues, 10000);\n\t\treturn batches.map(batch => new Send(\"scoreIssues\", {\n\t\t\t...state,\n\t\t\tcurrentBatch: batch\n\t\t}));\n\t})\n\t.addEdge(\"scoreIssues\", \"summarizeAndTranslateTopIssues\")\n\t.addEdge(\"summarizeAndTranslateTopIssues\", END)\n\t.compile();\n\nconst config = $('Get Workflow Run Id').first().json;\n\nconst result = await traceable(\n\tasync () => {\n\t\treturn await workflow.invoke({\n\t\t\trelease,\n\t\t\tissues\n\t\t});\n\t},\n\t{\n\t\tname: \"Issue Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tissueCount: issues.length,\n\t\t},\n\t},\n)();\n\nreturn [result.finalOutput];"
           }
         },
         "inputs": {
@@ -280,17 +910,17 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        1776,
-        592
+        2672,
+        704
       ],
-      "id": "802dc12c-b4b2-49f3-b4fc-9ebc893f618c",
+      "id": "63a5732f-1946-4c21-bcdf-a626176fc014",
       "name": "Issue Analysis Langchain Agent"
     },
     {
       "parameters": {
         "code": {
           "execute": {
-            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\n\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\n\nconst issue = $('Merge').first().json;\n\nconst NewsletterTitleSchema = $('Title Generator Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: NewsletterTitleSchema \n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst userPrompt = `\n\t\t\t[ROLE]\n\t\t\tYou are an AI assistant who creates newsletter titles based on GitHub issues.\n\n\t\t\t[OUTPUT RULES]\n\t\t\tYou must format your output as a JSON value that adheres to a given \"JSON Schema\" instance.\n\t\t\t\"JSON Schema\" is a declarative language that allows you to annotate and validate JSON documents.\n\t\t\tDo not include markdown code blocks in the output.\n\t\t\tTranslate all user-facing string values into ko-KR. Keep the keys in English.\n\n\t\t\t[TRANSLATE EXAMPLE]\n\t\t\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t\t\t[JSON SCHEMA]\n\t\t\t${JSON.stringify(wrappedSchema, null, 2)}\n\n\t\t\t[TASK]\n\t\t\t1. Read the provided GitHub issue.\n\t\t\t2. Generate a short, catchy newsletter title.\n\t\t\t3. The title should meet these criteria:\n\t\t\t\t\t- Include a relevant emoji at the beginning.\n\t\t\t\t\t- Be easy for a non-technical audience to understand.\n\t\t\t\t\t- Be fun and intriguing to maximize open rates.\n\t\t\t4. Translate the final title into ko-KR.\n\n\t\t\t[INPUT]\n\t\t\tPlease create a newsletter title for the issue below.\n\n\t\t\t### Issue\n\t\t\tTitle: ${issue.issueTitle}\n\t\t\tBody: ${issue.issueDescription}\n\t\t\tSummary: ${issue.summary}\n\t\t\tAnalogy: ${issue.analogy}\n\n\t\t\tOutput:\n\t`;\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponseTitleMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 20000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await agent.invoke({ \n\t\t\tmessages: [{ role: \"user\", content: userPrompt }],\n\t\t});\n\t},\n\t{ \n\t\tname: \"Title Generation\",\n\t\t...config\n\t},\n)();\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content; \n\nconst parsedMessage = await outputParser.parse(aiMessage)\nreturn [parsedMessage.output];"
+            "code": "const { createAgent, createMiddleware, modelRetryMiddleware, providerStrategy } = require(\"langchain\");\nconst { traceable } = require(\"langsmith/traceable\");\nconst { encodingForModel } = require(\"js-tiktoken\");\n\nconst outputParser = await this.getInputConnectionData('ai_outputParser', 0);\nconst languageModel = await this.getInputConnectionData('ai_languageModel', 0);\n\nconst prData = $('Fetch Top PR Details').item.json.data.repository.pullRequest;\nconst PrAnalysisSchema = $('PR Analysis Schema').item.json;\nconst wrappedSchema = {\n\ttype: \"object\",\n\tproperties: {\n\t\toutput: PrAnalysisSchema\n\t},\n\trequired: [\"output\"]\n};\n\nconst getLanguageDisplayName = (code) => {\n\ttry {\n\t\treturn new Intl.DisplayNames([code], { type: 'language' }).of(code);\n\t} catch {\n\t\treturn '';\n\t}\n};\n\nconst userPrompt = `\n\t[ROLE]\n\tYou are an AI assistant that analyzes PR contributions from new open-source contributors. \n\tYour goal is to help other newcomers understand what makes a good contribution.\n\n\t[OUTPUT RULES]\n\tKeep keys in English.\n\tTranslate all user-facing strings into ko-KR.\n\n\t[TRANSLATE EXAMPLE]\n\tko-KR -> ${getLanguageDisplayName(\"ko-KR\")}\n\n\t[TASK]\n\t1) Create 1 analogy to help newcomers understand the PR's purpose.\n\t2) Summarize the PR in 1 concise line - what problem it solves and how.\n\t3) Classify the contribution type based on the changes made.\n\t4) For the first linked issue, create 1 analogy and summarize it in 1 line, then explain why it was good for contribution.\n\t5) Summarize key review feedback in 1 key point.\n\t6) Extract 1 insight for future contributors from review comments.\n\n\t[CONTRIBUTION TYPE CLASSIFICATION]\n\t- \"bug fix\": Fixes a bug or error\n\t- \"feature\": Adds new functionality\n\t- \"docs\": Documentation changes only\n\t- \"refactor\": Code restructuring without behavior change\n\t- \"test\": Adding or modifying tests\n\t- \"chore\": Maintenance tasks, dependency updates, etc.\n\n\t[WHY GOOD FOR CONTRIBUTION CRITERIA]\n\t1. Clear and well-defined issue scope\n\t2. Good first issue label or beginner-friendly tags\n\t3. Clear reproduction steps or requirements\n\t4. Available mentorship or guidance in comments\n\t5. Limited codebase knowledge required\n\n\t[INSIGHTS FOR FUTURE CONTRIBUTORS]\n\tExtract from review comments:\n\t- Code style and formatting requirements\n\t- Testing requirements\n\t- PR description format\n\t- Common mistakes to avoid\n\t- Best practices mentioned by reviewers\n\n\t[OUTPUT FORMAT]\n\t- analogy: 1 analogy to help understand the PR\n\t- summary: 1 concise line\n\t- contributionType: one of the 6 types\n\t- linkedIssue.analogy: 1 analogy to help understand the issue\n\t- linkedIssue.summary: 1 concise line summarizing the issue\n\t- linkedIssue.whyGoodForContribution: 1 reason\n\t- review.summary: 1 key point from reviews\n\t- review.insights: 1 insight for future contributors\n\n\t[INPUT]\n\t[PR DATA]\n\t${JSON.stringify(prData, null, 2)}\n`.trim();\n\nconst encoder = encodingForModel(\"gpt-4\");\nconst inputTokenCount = encoder.encode(userPrompt).length;\n\nclass TimeoutError extends Error {\n\tconstructor(message = 'Operation timed out') {\n\t\tsuper(message);\n\t\tthis.name = 'TimeoutError';\n\t}\n}\n\nconst timeoutMiddleware = (timeout = 90 * 1000) => {\n\tconst middlewareName = \"timeoutMiddleware\";\n\treturn createMiddleware({\n\t\tname: middlewareName,\n\t\twrapModelCall: async (request, handler) => {\n\t\t\tlet timeoutObj;\n\t\t\ttry {\n\t\t\t\treturn await Promise.race([\n\t\t\t\t\thandler(request),\n\t\t\t\t\tnew Promise((_, reject) => {\n\t\t\t\t\t\ttimeoutObj = setTimeout(() => reject(new TimeoutError()), timeout);\n\t\t\t\t\t})\n\t\t\t\t]);\n\t\t\t} finally {\n\t\t\t\tclearTimeout(timeoutObj);\n\t\t\t}\n\t\t},\n\t});\n};\n\nconst jitterMiddleware = createMiddleware({\n\tname: \"jitterMiddleware\",\n\twrapModelCall: async (request, handler) => {\n\t\tconst delay = Math.floor(Math.random() * 100);\n\t\tawait new Promise(resolve => setTimeout(resolve, delay));\n\t\treturn handler(request);\n\t}\n});\n\nconst validateResponseMiddleware = createMiddleware({\n\tname: \"validateResponsePrAnalysisMiddleware\",\n\tafterModel: {\n\t\tcanJumpTo: [\"model\"],\n\t\thook: (state) => {\n\t\t\tconst lastMessage = state.messages[state.messages.length - 1];\n\t\t\tif (!lastMessage.content?.trim()) {\n\t\t\t\treturn { jumpTo: \"model\" }\n\t\t\t}\n\t\t\treturn;\n\t\t}\n\t}\n});\n\nconst agent = createAgent({\n\tmodel: languageModel,\n\tresponseFormat: providerStrategy(wrappedSchema),\n\tmiddleware: [\n\t\tvalidateResponseMiddleware,\n\t\tmodelRetryMiddleware({\n\t\t\tmaxRetries: 2,\n\t\t\tbackoffFactor: 2.0,\n\t\t\tinitialDelayMs: 5 * 1000,\n\t\t\tjitter: true,\n\t\t\tonFailure: \"error\",\n\t\t}),\n\t\tjitterMiddleware,\n\t\ttimeoutMiddleware(3 * 60 * 1000),\n\t]\n});\n\nconst config = $('Get Workflow Run Id').first().json;\nconst result = await traceable(\n\tasync () => {\n\t\treturn await agent.invoke({\n\t\t\tmessages: [{ role: \"user\", content: userPrompt }],\n\t\t});\n\t},\n\t{\n\t\tname: \"PR Analysis\",\n\t\t...config,\n\t\tmetadata: {\n\t\t\t...config.metadata,\n\t\t\tinputTokenCount,\n\t\t\tprNumber: prData.number,\n\t\t},\n\t},\n)();\n\nconst aiMessage = result.messages.findLast(m => m.type === \"ai\")?.content;\nconst parsedMessage = await outputParser.parse(aiMessage);\nconst firstIssue = prData.closingIssuesReferences?.nodes?.[0];\n\nreturn [{\n\t...parsedMessage.output,\n\ttitle: prData.title,\n\turl: prData.url,\n\tlinkedIssue: parsedMessage.output.linkedIssue ? {\n\t\t...parsedMessage.output.linkedIssue,\n\t\ttitle: firstIssue?.title,\n\t\turl: firstIssue?.url\n\t} : null\n}];"
           }
         },
         "inputs": {
@@ -323,185 +953,24 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        3744,
-        608
+        1472,
+        720
       ],
-      "id": "93c69f30-844c-4a0e-8e1b-2a1c2852faad",
-      "name": "Title Generator Langchain Agent"
+      "id": "a09a100e-0d62-455b-8eef-fe3e8a4a50ed",
+      "name": "PR Analysis Langchain Agent"
     },
     {
       "parameters": {
-        "content": "# 1. Analyze GitHub Issues for Contributors\n### Evaluates open-source issues and releases to identify the best contribution opportunities, categorizing them by suitability level and providing translated summaries for potential contributors.",
-        "height": 636,
-        "width": 696,
-        "color": 2
-      },
-      "id": "f570e2fd-90b2-425e-839b-dd430dc8e41e",
-      "name": "Sticky Note10",
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        1584,
-        400
-      ],
-      "typeVersion": 1
-    },
-    {
-      "parameters": {
-        "fieldToSplitOut": "issues",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.splitOut",
-      "typeVersion": 1,
-      "position": [
-        2880,
-        544
-      ],
-      "id": "3bc31e74-50fd-4b41-8927-a6deb5f688c4",
-      "name": "Split Out"
-    },
-    {
-      "parameters": {
-        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"High\", \"Medium\", \"Low\"],\n\t\t\tdescription: \"High | Medium | Low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"array\",\n\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
+        "jsCode": "const prAnalysisOutputSchema = {\n\ttitle: \"pr_analysis_output\",\n\tdescription: \"Analysis result of a PR contribution from a new open-source contributor\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tminItems: 1,\n\t\t\tmaxItems: 1,\n\t\t\tdescription: \"An analogy to help newcomers understand the PR's purpose\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tminItems: 1,\n\t\t\tmaxItems: 1,\n\t\t\tdescription: \"1 concise line summarizing what the PR solves and how\"\n\t\t},\n\t\tlinkedIssue: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tanalogy: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"An analogy to help newcomers understand the issue's context\"\n\t\t\t\t},\n\t\t\t\tsummary: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 concise line summarizing the issue\"\n\t\t\t\t},\n\t\t\t\twhyGoodForContribution: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 reason why this issue was good for contribution\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"analogy\", \"summary\", \"whyGoodForContribution\"],\n\t\t\tdescription: \"First linked issue and its analysis\"\n\t\t},\n\t\treview: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\turl: {\n\t\t\t\t\ttype: \"string\",\n\t\t\t\t\tpattern: \"^https://github\\\\.com/[^/]+/[^/]+/pull/\\\\d+#.+$\",\n\t\t\t\t\tdescription: \"URL of the review for verification\"\n\t\t\t\t},\n\t\t\t\tsummary: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 key point from reviews and discussions\"\n\t\t\t\t},\n\t\t\t\tinsights: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\tminItems: 1,\n\t\t\t\t\tmaxItems: 1,\n\t\t\t\t\tdescription: \"1 insight for future contributors extracted from review comments\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"url\", \"summary\", \"insights\"],\n\t\t\tdescription: \"Review analysis with summary and insights\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"analogy\", \"summary\", \"linkedIssue\", \"review\"]\n};\nreturn prAnalysisOutputSchema;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2624,
-        688
+        1312,
+        720
       ],
-      "id": "ea8e1a37-e31a-410c-8fda-2cc887c62f04",
-      "name": "Deepwiki Response Schema",
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "={{ $json.toJsonString() }}",
-        "autoFix": true
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        2576,
-        896
-      ],
-      "id": "008e4a4e-08f4-4884-b2b2-4bac7d672f0b",
-      "name": "Deepwiki Structured Output Parser",
-      "executeOnce": false,
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "maxTries": 3
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "={{ $json.toJsonString() }}",
-        "autoFix": true
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        3520,
-        880
-      ],
-      "id": "dd67528b-5bb7-4c62-9ee0-f1278a678163",
-      "name": "Title Generator Structured Output Parser",
-      "retryOnFail": true,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "jsCode": "return {\n\t\ttitle: \"newsletter_title_output\",\n\t\tdescription: \"Generated newsletter title based on GitHub issue\",\n\t\ttype: \"object\",\n\t\tproperties: {\n\t\t\t\ttranslationLanguageCode: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Language code\"\n\t\t\t\t},\n\t\t\t\ttitle: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Catchy newsletter title with emoji, translated to target language\"\n\t\t\t\t}\n\t\t},\n\t\trequired: [\"translationLanguageCode\", \"title\"]\n};"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        3552,
-        608
-      ],
-      "id": "7de65c31-96a4-4248-9159-61f2e398c227",
-      "name": "Title Generator Schema",
-      "alwaysOutputData": false
-    },
-    {
-      "parameters": {
-        "jsCode": "const workflowRunId = crypto.randomUUID();\nconst repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst config = {\n\tmetadata: {\n\t\trun_id: workflowRunId,\n\t\trepo: repoInfo,\n\t\temail: \"\",\n\t}\n};\nreturn config"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        912,
-        592
-      ],
-      "id": "46ffce0f-923e-4ab4-a927-54a00073c269",
-      "name": "Get Workflow Run Id"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://email.ap-northeast-2.amazonaws.com/v2/email/outbound-emails",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "aws",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.jsonString }}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.3,
-      "position": [
-        4864,
-        608
-      ],
-      "id": "760f043a-1445-4ebf-a504-cae47b9a850b",
-      "name": "AWS SES v2 HTTP Request",
-      "credentials": {
-        "aws": {
-          "id": "aws",
-          "name": "AWS (IAM) account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const repoInfo = `${$('Load Repo Info').first().json.owner}/${$('Load Repo Info').first().json.name}`;\nconst title = $('Title Generator Langchain Agent').first().json.title;\nconst requestBody = {\n\tFromEmailAddress: \"noreply@kirrin.link\",\n\tDestination: { ToAddresses: [\"\"] },\n\tContent: {\n\t\tSimple: {\n\t\t\tSubject: { Data: `[Issue Report] ${repoInfo} - ${title}`, Charset: \"UTF-8\" },\n\t\t\tBody: {\n\t\t\t\tHtml: { \n\t\t\t\t\tData: $input.first().json.htmlOutput.html,\n\t\t\t\t\tCharset: \"UTF-8\" \n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n};\n\nconst jsonString = JSON.stringify(requestBody);\n\nreturn { jsonString }"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        4672,
-        608
-      ],
-      "id": "ea1dc579-fbf1-48bf-bb79-acadc6def8ac",
-      "name": "Make SES v2 Request Body"
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        2032,
-        1376
-      ],
-      "id": "4861c90e-7288-4a69-9db7-242d501e70e6",
-      "name": "OpenAI Chat Model",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
+      "id": "d8ec871d-cc7c-4cf5-8572-4b3310bcc1c5",
+      "name": "PR Analysis Schema"
     },
     {
       "parameters": {
@@ -519,11 +988,11 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2032,
-        816
+        1568,
+        1008
       ],
-      "id": "ff02d5cb-6fee-4949-a02a-de37dda8b3fa",
-      "name": "OpenAI Chat Model1",
+      "id": "e896d371-b08c-4f9f-b7d4-f4e0497fff3a",
+      "name": "OpenAI Chat Model8",
       "credentials": {
         "openAiApi": {
           "id": "openAiApi",
@@ -547,278 +1016,36 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2560,
-        1088
+        1296,
+        1120
       ],
-      "id": "a43aaf73-0b72-446f-8629-6d358aa95d91",
-      "name": "OpenAI Chat Model2",
+      "id": "b62dd26a-7afe-42bd-83db-d49dc0cb316f",
+      "name": "OpenAI Chat Model9",
       "credentials": {
         "openAiApi": {
           "id": "openAiApi",
           "name": "OpenAi account"
         }
       }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        2912,
-        928
-      ],
-      "id": "29c0d234-ebd3-47c5-8242-df81c67be923",
-      "name": "OpenAI Chat Model3",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        3520,
-        1072
-      ],
-      "id": "b2eb428d-a957-4d4f-b91f-ecbab3f394b5",
-      "name": "OpenAI Chat Model4",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        3824,
-        848
-      ],
-      "id": "88552d15-5dbb-4490-a135-dc0399cc2b02",
-      "name": "OpenAI Chat Model5",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        1600,
-        1376
-      ],
-      "id": "a056b9f1-e574-4f24-874a-6f7358e12dc2",
-      "name": "OpenAI Chat Model6",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "model": {
-          "__rl": true,
-          "value": "hf:openai/gpt-oss-120b",
-          "mode": "list",
-          "cachedResultName": "hf:openai/gpt-oss-120b"
-        },
-        "responsesApiEnabled": false,
-        "options": {
-          "timeout": 300000
-        }
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1.3,
-      "position": [
-        1232,
-        1360
-      ],
-      "id": "a4569fa8-07b4-4ab8-adf1-d302014fc3f7",
-      "name": "OpenAI Chat Model7",
-      "credentials": {
-        "openAiApi": {
-          "id": "openAiApi",
-          "name": "OpenAi account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueSummaryOutputSchema = {\n\ttitle: \"issue_summary_output\",\n\tdescription: \"Summary result of GitHub issues\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tissues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\ttitle: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tdescription: \"Issue title\"\n\t\t\t\t\t},\n\t\t\t\t\turl: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tdescription: {\n\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\tdescription: \"A 1-2 line concise summary of the original issue description capturing the core problem or feature request (NOT a verbatim copy)\"\n\t\t\t\t\t},\n\t\t\t\t\tsuitability: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tlevel: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tenum: [\"high\", \"medium\", \"low\"],\n\t\t\t\t\t\t\t\tdescription: \"Contribution opportunity level\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\treasons: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tdescription: \"Reasons for the level\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"level\", \"reasons\"]\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"title\", \"url\", \"description\", \"suitability\"]\n\t\t\t},\n\t\t\tdescription: \"Top 3-5 suitable issues\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"issues\"]\n};\nreturn issueSummaryOutputSchema;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1104,
-        800
-      ],
-      "id": "3727f129-bb7e-4100-ac18-b2d563107c54",
-      "name": "Issue Summary Schema"
-    },
-    {
-      "parameters": {
-        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1120,
-        512
-      ],
-      "id": "2311630b-7e51-4a26-aa1c-f0adcfad5435",
-      "name": "Release Summary Schema"
-    },
-    {
-      "parameters": {
-        "jsCode": "const { owner, name } = $('Load Repo Info').first().json;\n\nconst issueScoreOutputSchema = {\n\ttitle: \"issue_score_output\",\n\tdescription: \"Score result for GitHub issues\",\n\ttype: \"object\",\n\tproperties: {\n\t\tscoredIssues: {\n\t\t\ttype: \"array\",\n\t\t\titems: {\n\t\t\t\ttype: \"object\",\n\t\t\t\tproperties: {\n\t\t\t\t\turl: {\n\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\tpattern: `^https://github.com/${owner}/${name}/issues/\\\\d+$`,\n\t\t\t\t\t\tdescription: \"Issue URL\"\n\t\t\t\t\t},\n\t\t\t\t\tscore: {\n\t\t\t\t\t\ttype: \"integer\",\n\t\t\t\t\t\tminimum: 1,\n\t\t\t\t\t\tmaximum: 10,\n\t\t\t\t\t\tdescription: \"Score from 1-10 based on contribution opportunity criteria\"\n\t\t\t\t\t},\n\t\t\t\t\treasons: {\n\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\tminItems: 2,\n\t\t\t\t\t\tmaxItems: 4,\n\t\t\t\t\t\tdescription: \"2-4 reasons explaining the score\"\n\t\t\t\t\t}\n\t\t\t\t},\n\t\t\t\trequired: [\"url\", \"score\", \"reasons\"]\n\t\t\t},\n\t\t\tdescription: \"Array of scored issues\"\n\t\t}\n\t},\n\trequired: [\"scoredIssues\"]\n};\nreturn issueScoreOutputSchema;"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1120,
-        656
-      ],
-      "id": "0847bb2a-4601-4185-8dbf-e7f130adef21",
-      "name": "Issue Score Schema"
-    },
-    {
-      "parameters": {
-        "numberInputs": 3
-      },
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3.2,
-      "position": [
-        1376,
-        576
-      ],
-      "id": "2855e646-12eb-4ac1-9319-91726997fd26",
-      "name": "Merge1"
     },
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "={{ $('Aggregate').first().json.data[2].toJsonString() }}",
+        "inputSchema": "={{ $('PR Analysis Schema').item.json.toJsonString() }}",
         "autoFix": true
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2032,
-        1200
+        1312,
+        960
       ],
-      "id": "35b3b1ce-1f0d-4095-8cce-986c5638ad97",
-      "name": "Issue Summary Structured Output Parser",
-      "retryOnFail": true,
-      "alwaysOutputData": false,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "={{ $('Aggregate').first().json.data[1].toJsonString() }}",
-        "autoFix": true
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        1600,
-        1216
-      ],
-      "id": "a46fb281-fd93-4524-acc1-73d9c7187354",
-      "name": "Issue Score Structured Output Parser",
-      "retryOnFail": true,
-      "alwaysOutputData": false,
-      "waitBetweenTries": 5000
-    },
-    {
-      "parameters": {
-        "schemaType": "manual",
-        "inputSchema": "={{ $('Aggregate').first().json.data[0].toJsonString() }}",
-        "autoFix": true
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        1248,
-        1200
-      ],
-      "id": "616c40d2-305e-446f-984e-273525458aec",
-      "name": "Release Summary Structured Output Parser",
+      "id": "f941f9d1-4cdb-4565-808b-e66ae671b177",
+      "name": "PR Analysis Structured Output Parser",
       "retryOnFail": true,
       "alwaysOutputData": false,
       "waitBetweenTries": 5000,
       "executeOnce": false
-    },
-    {
-      "parameters": {
-        "aggregate": "aggregateAllItemData",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.aggregate",
-      "typeVersion": 1,
-      "position": [
-        1568,
-        592
-      ],
-      "id": "f39dd7da-e32f-47b1-baf5-1aadeeedba8f",
-      "name": "Aggregate"
     }
   ],
   "pinData": {},
@@ -828,55 +1055,6 @@
         [
           {
             "node": "Title Generator Schema",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Load Repo Info": {
-      "main": [
-        [
-          {
-            "node": "Get Issue From Github",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "get Top Fit Issues": {
-      "main": [
-        [
-          {
-            "node": "Deepwiki Response Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Split Out",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Issue From Github": {
-      "main": [
-        [
-          {
-            "node": "Get Workflow Run Id",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "When clicking ‘Execute workflow’": {
-      "main": [
-        [
-          {
-            "node": "Load Repo Info",
             "type": "main",
             "index": 0
           }
@@ -912,17 +1090,6 @@
             "node": "Merge",
             "type": "main",
             "index": 1
-          }
-        ]
-      ]
-    },
-    "Issue Analysis Langchain Agent": {
-      "main": [
-        [
-          {
-            "node": "get Top Fit Issues",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -993,55 +1160,12 @@
         ]
       ]
     },
-    "Get Workflow Run Id": {
-      "main": [
-        [
-          {
-            "node": "Issue Summary Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Release Summary Schema",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Issue Score Schema",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Make SES v2 Request Body": {
       "main": [
         [
           {
             "node": "AWS SES v2 HTTP Request",
             "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Summary Structured Output Parser",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenAI Chat Model1": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Issue Analysis Langchain Agent",
-            "type": "ai_languageModel",
             "index": 0
           }
         ]
@@ -1091,6 +1215,82 @@
         ]
       ]
     },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Load Repo Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Repo Info": {
+      "main": [
+        [
+          {
+            "node": "Get Workflow Run Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Issue From Github": {
+      "main": [
+        [
+          {
+            "node": "Release Summary Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Issue Score Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Issue Summary Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Workflow Run Id": {
+      "main": [
+        [
+          {
+            "node": "Fetch Recent Merged PRs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Summary Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Issue Analysis Langchain Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "OpenAI Chat Model6": {
       "ai_languageModel": [
         [
@@ -1124,6 +1324,17 @@
         ]
       ]
     },
+    "Release Summary Schema": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "Issue Score Schema": {
       "main": [
         [
@@ -1140,17 +1351,6 @@
         [
           {
             "node": "Aggregate",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Release Summary Schema": {
-      "main": [
-        [
-          {
-            "node": "Merge1",
             "type": "main",
             "index": 0
           }
@@ -1200,13 +1400,150 @@
           }
         ]
       ]
+    },
+    "Fetch Recent Merged PRs": {
+      "main": [
+        [
+          {
+            "node": "Build User Merge Count Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build User Merge Count Query": {
+      "main": [
+        [
+          {
+            "node": "Fetch Author Merge Counts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Author Merge Counts": {
+      "main": [
+        [
+          {
+            "node": "Sort by Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sort by Priority": {
+      "main": [
+        [
+          {
+            "node": "Fetch Top PR Details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Top PR Details": {
+      "main": [
+        [
+          {
+            "node": "PR Analysis Schema",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Issue Analysis Langchain Agent": {
+      "main": [
+        [
+          {
+            "node": "get Top Fit Issues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PR Analysis Langchain Agent": {
+      "main": [
+        [
+          {
+            "node": "Get Issue From Github",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PR Analysis Schema": {
+      "main": [
+        [
+          {
+            "node": "PR Analysis Langchain Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PR Analysis Langchain Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model9": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "PR Analysis Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PR Analysis Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "PR Analysis Langchain Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get Top Fit Issues": {
+      "main": [
+        [
+          {
+            "node": "Deepwiki Response Schema",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f406b001-49fc-4ef1-8608-2ad3041e2dd2",
+  "versionId": "373d6efa-8394-4d86-bd75-55b50bba4ab6",
   "meta": {
     "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96",
     "templateCredsSetupCompleted": true
