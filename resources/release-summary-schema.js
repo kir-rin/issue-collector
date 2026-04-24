@@ -23,13 +23,13 @@ const releaseSummarySchema = () => {
 								descriptions: {
 									type: "array",
 									items: { type: "string" },
-									maxItems: 3,
+									maxItems: 2,
 									description: "Compressed release descriptions (maximum 3 items)"
 								}
 							},
 							required: ["category", "descriptions"]
 						},
-						maxItems: 3,
+						maxItems: 2,
 						description: "Array of release details (maximum 3 items)"
 					}
 				},
