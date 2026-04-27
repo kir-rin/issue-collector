@@ -5,7 +5,8 @@
 // toAlias 함수는 build-user-merge-count-query.js와 동일한 로직을 사용해야 합니다.
 // GraphQL alias에서 숫자로 시작하는 사용자명을 처리하기 위해 _를 붙입니다.
 const sortByPriority = `{
-	const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes;
+	const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes
+		.filter(pr => pr.author?.login);
 	const issueCounts = $('Fetch Author Merge Counts').first().json.data.data;
 	const toAlias = (login) => login ? (s => /^[0-9]/.test(s) ? "_" + s : s)(login.replace(/-/g, "_")) : "";
 	const merged = prs.map(pr => ({
