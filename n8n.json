@@ -58,7 +58,7 @@
       "typeVersion": 1,
       "position": [
         2384,
-        1280
+        1632
       ],
       "id": "5fb1db52-412e-429e-abeb-19b241325ebc",
       "name": "OpenRouter Chat Model",
@@ -148,7 +148,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prData = processData($('PR Analysis Langchain Agent').first().json);\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue?.url}\">${prData.linkedIssue?.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue?.analogy)}\n\t\t${createBulletedList(prData.linkedIssue?.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review?.summary?.[0]} <a href=\"${prData.review?.url}\" style=\"font-weight: bold;\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review?.insights)}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
+        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prAgent = $('PR Analysis Langchain Agent');\nconst prData = prAgent.isExecuted ? processData(prAgent.first()?.json) : null;\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t${prData.linkedIssue?.url ? `\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue.url}\">${prData.linkedIssue.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue.analogy)}\n\t\t${createBulletedList(prData.linkedIssue.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t` : ''}\n\t\t${prData.review?.url ? `\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review.summary?.[0]} <a href=\"${prData.review.url}\" style=\"font-weight: bold;\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review.insights)}\n\t\t<mj-spacer/>\n\t\t` : ''}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -331,8 +331,8 @@
       "name": "When clicking ‘Execute workflow’",
       "type": "n8n-nodes-base.manualTrigger",
       "position": [
-        720,
-        864
+        512,
+        896
       ],
       "typeVersion": 1
     },
@@ -344,8 +344,8 @@
       "name": "Load Repo Info",
       "type": "n8n-nodes-base.code",
       "position": [
-        912,
-        864
+        704,
+        896
       ],
       "typeVersion": 2
     },
@@ -410,8 +410,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1104,
-        864
+        896,
+        896
       ],
       "id": "8159eb46-2f7b-4e46-b8b6-73c807d59a3b",
       "name": "Get Workflow Run Id"
@@ -431,7 +431,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
+        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 2,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 2,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -548,8 +548,8 @@
       "name": "Fetch Recent Merged PRs",
       "type": "n8n-nodes-base.graphql",
       "position": [
-        1280,
-        864
+        1072,
+        896
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -562,13 +562,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = user.replace(/-/g, \"_\");\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
+        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst toAlias = (login) => login ? (s => /^[0-9]/.test(s) ? \"_\" + s : s)(login.replace(/-/g, \"_\")) : \"\";\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = toAlias(user);\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1504,
-        864
+        1296,
+        896
       ],
       "id": "e3fce574-38d1-49b3-9863-39b370c188c3",
       "name": "Build User Merge Count Query"
@@ -586,7 +586,7 @@
       "type": "n8n-nodes-base.graphql",
       "position": [
         1728,
-        864
+        1216
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -599,13 +599,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes;\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[pr.author.login?.replace(/-/g, '_')]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
+        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes\n\t.filter(pr => pr.author?.login);\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst toAlias = (login) => login ? (s => /^[0-9]/.test(s) ? \"_\" + s : s)(login.replace(/-/g, \"_\")) : \"\";\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[toAlias(pr.author.login)]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1936,
-        864
+        1216
       ],
       "id": "4b7090bb-0a0f-4178-98a9-eec1b9a9e8a8",
       "name": "Sort by Priority"
@@ -622,7 +622,7 @@
       "type": "n8n-nodes-base.graphql",
       "position": [
         2160,
-        864
+        1216
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -714,7 +714,7 @@
       "typeVersion": 1,
       "position": [
         2544,
-        864
+        1216
       ],
       "id": "0d6c8a2c-f066-4b03-aedf-96589563a345",
       "name": "PR Analysis Langchain Agent"
@@ -727,7 +727,7 @@
       "typeVersion": 2,
       "position": [
         2384,
-        864
+        1216
       ],
       "id": "1b706ba8-0fe4-4115-a878-0a514f58e9f1",
       "name": "PR Analysis Schema"
@@ -742,7 +742,7 @@
       "typeVersion": 1.3,
       "position": [
         2384,
-        1104
+        1456
       ],
       "id": "f9545890-80d3-4545-bd8a-5fa719f99d2f",
       "name": "PR Analysis Structured Output Parser",
@@ -763,7 +763,7 @@
       "typeVersion": 1,
       "position": [
         2656,
-        1040
+        1392
       ],
       "id": "50a85407-8d58-43c3-ab36-10d2e9851249",
       "name": "OpenRouter Chat Model1",
@@ -982,6 +982,40 @@
           "name": "SMTP account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c653b8c7-fce6-4cdd-931f-63dbb7284275",
+              "leftValue": "={{ $('Fetch Recent Merged PRs').item.json.data.repository.pullRequests.nodes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1504,
+        896
+      ],
+      "id": "f091377e-b261-4b51-ad05-d1d98faa7c21",
+      "name": "If"
     }
   ],
   "pinData": {},
@@ -1280,7 +1314,7 @@
       "main": [
         [
           {
-            "node": "Fetch Author Merge Counts",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -1462,13 +1496,31 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Issue From Github",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Author Merge Counts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "be41a71a-5b98-4145-8d6b-3f2e788d12c8",
+  "versionId": "85e64c8f-1691-47dc-a0f5-e3f7ab78a39f",
   "meta": {
     "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96",
     "templateCredsSetupCompleted": true

@@ -11,8 +11,8 @@
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "position": [
-        4032,
-        704
+        4368,
+        720
       ],
       "executeOnce": false,
       "typeVersion": 3.2
@@ -43,8 +43,8 @@
       "name": "Sticky Note7",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        4336,
-        496
+        4672,
+        512
       ],
       "typeVersion": 1
     },
@@ -59,8 +59,8 @@
       "name": "Sticky Note8",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        3344,
-        496
+        3680,
+        512
       ],
       "typeVersion": 1
     },
@@ -74,8 +74,8 @@
       "name": "Sticky Note9",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        5008,
-        496
+        5344,
+        512
       ],
       "typeVersion": 1
     },
@@ -116,8 +116,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5312,
-        704
+        5648,
+        720
       ],
       "id": "36b2de08-ff2b-4728-8396-2d8ec9ad1520",
       "name": "convert MJML to HTML",
@@ -125,13 +125,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const marked = require('marked');\n\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prData = processData($('PR Analysis Langchain Agent').first().json);\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue?.url}\">${prData.linkedIssue?.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue?.analogy)}\n\t\t${createBulletedList(prData.linkedIssue?.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review?.summary?.[0]} <a href=\"${prData.review?.url}\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review?.insights)}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
+        "jsCode": "const marked = require('marked');\nconst escapeHtml = (str) => str.replace(/</g, '&lt;').replace(/>/g, '&gt;');\n\nconst convertMarkdownToHTML = (markdown) => {\n\tconst renderer = new marked.Renderer();\n\t\n\trenderer.link = ({text}) => {                       \n       return text;       \n\t};\n\n\trenderer.codespan = ({text}) => {\n\t\treturn `<span class=\"notion-code\">${escapeHtml(text)}</span>`;\n\t};\n\t\n\trenderer.code = ({text}) => {\n\t\treturn `<pre class=\"notion-code-block\"><code>${escapeHtml(text)}</code></pre>`;\n\t};\n\t\n\tlet html = marked.parse(markdown, { renderer });\n\thtml = html.replace(/<\\/?p>/g, '');  // <p> 태그 제거\n\t\n\treturn html;\n};\n\nconst processData = (data) => {\n\tif (typeof data === 'string') {\n\t\treturn convertMarkdownToHTML(data);\n\t}\n\tif (Array.isArray(data)) {\n\t\treturn data.map(item => processData(item));\n\t}\n\tif (typeof data === 'object' && data !== null) {\n\t\tconst result = {};\n\t\tfor (const key in data) {\n\t\t\tresult[key] = processData(data[key]);\n\t\t}\n\t\treturn result;\n\t}\n\treturn data;\n};\nconst createBulletedList = (items) => {\n\tif (!Array.isArray(items) || items.length === 0) {\n\t\treturn '';\n\t}\n\treturn items.map(item => `<mj-text mj-class=\"section-content\">• ${item}</mj-text>`).join('<br/>');\n};\nconst prData = processData($('PR Analysis Langchain Agent').first().json);\nprData.linkedIssue.url = null;\n\n\nlet referencePR = '';\nif (prData) {\n\treferencePR = `\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🌟 Newcomer's Reference PR</mj-text>\n\t\t<mj-text align=\"center\" padding-top=\"0\" padding-bottom=\"0\">\n\t\t\t<table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\" style=\"margin: 0 auto;\">\n\t\t\t\t<tr>\n\t\t\t\t\t<td style=\"\n\t\t\t\t\t\tbackground-color: #3C3489;\n\t\t\t\t\t\tcolor: #EEEDFE;\n\t\t\t\t\t\tfont-size: 12px;\n\t\t\t\t\t\tfont-family: Nanum, Times, sans-serif;\n\t\t\t\t\t\tpadding: 6px 16px;\n\t\t\t\t\t\tborder-radius: 20px;\n\t\t\t\t\t\twhite-space: nowrap;\n\t\t\t\t\t\">\n\t\t\t\t\t\t&#9432;&nbsp; Check out this exemplary PR to get started\n\t\t\t\t\t</td>\n\t\t\t\t</tr>\n\t\t\t</table>\n\t\t</mj-text>\n\t\t<mj-spacer/>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.url}\">${prData.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.analogy)}\n\t\t${createBulletedList(prData.summary)}\n\t\t<mj-spacer/>\n\t\t${prData.linkedIssue?.url ? `\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">🔗 Related Issue</mj-text>\n\t\t<mj-text mj-class=\"section-title\" align=\"center\"><a href=\"${prData.linkedIssue.url}\">${prData.linkedIssue.title}</a></mj-text>\n\t\t<mj-spacer/>\n\t\t${createBulletedList(prData.linkedIssue.analogy)}\n\t\t${createBulletedList(prData.linkedIssue.summary)}\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Why Good for Contribution</mj-text>\n\t\t${createBulletedList(prData.linkedIssue.whyGoodForContribution)}\n\t\t<mj-spacer/>\n\t\t` : ''}\n\t\t<mj-divider border-width=\"1px\"></mj-divider>\n\t\t<mj-text mj-class=\"issue-title\" align=\"center\">💡 Review</mj-text>\n\t\t<mj-text mj-class=\"section-content\">• ${prData.review?.summary?.[0]} <a href=\"${prData.review?.url}\" style=\"font-weight: bold;\">(Link)</a></mj-text>\n\t\t<mj-text mj-class=\"section-title\" font-weight=\"bold\">Key Takeaway</mj-text>\n\t\t${createBulletedList(prData.review?.insights)}\n\t\t`;\n}\n\nconst latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);\nlet latestRelease = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #52af0f\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">🚀 Latest Release <a href=\"${latestReleaseInfo.url}\">(${latestReleaseInfo.name})</a></mj-text>\n\t\t`;\nfor (const { category, descriptions } of latestReleaseInfo.details) {\n\tlatestRelease += `<mj-text mj-class=\"section-content\" font-weight=\"bold\">[${category}]</mj-text>`;\n\tlatestRelease += createBulletedList(descriptions);\n}\nlatestRelease += '</mj-column></mj-section>';\nconst processedIssues = $('Merge').all().map(item => processData(item.json));\nlet summary = `\n\t\t <mj-section padding=\"15px\">\n\t\t\t\t <mj-column border=\"3px solid #193404\">\n\t\t\t\t\t\t <mj-text mj-class=\"section-title\">📌 Quick Summary</mj-text>\n\t\t\t\t\t\t ${createBulletedList(processedIssues.map(item => item.summary))}\n\t\t\t\t </mj-column>\n\t\t </mj-section>`;\n\nlet issues = [];\nfor (const issue of processedIssues) {\n\tlet issueInfo = `<mj-text mj-class=\"issue-title\">${issue.title}</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-spacer/>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-title\">🔑 Keywords</mj-text>\n\t\t\t\t\t\t\t\t\t\t\t<mj-text mj-class=\"section-content\">${issue.keyword.join(', ')}</mj-text>\n\t\t\t\t\t\t\t\t\t\t`;\n\n\tlet analogy = `<mj-text mj-class=\"section-title\">🔄 Analogy</mj-text>`;\n\tanalogy += createBulletedList(issue.analogy)\n\n\tlet description = `<mj-text mj-class=\"section-title\">🧾 Issue Description</mj-text>`;\n\tdescription += createBulletedList(issue.description);\n\n\tlet rootCause = `<mj-text mj-class=\"section-title\">🧩 Root Cause</mj-text>`\n\trootCause += createBulletedList(issue.rootCause);\n\n\tlet resolutionApproach = `<mj-text mj-class=\"section-title\">🛠️ Resolution Approach</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`;\n\tresolutionApproach += createBulletedList(issue.resolutionApproach);\n\tresolutionApproach += '</mj-text>';\n\n\tlet suitability = `<mj-text mj-class=\"section-title\">✅ Issue Suitability: ${issue.suitability.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\tsuitability += createBulletedList(issue.suitability.reasons);\n\tsuitability += '</mj-text>';\n\n\tlet technicalDifficulty = `<mj-text mj-class=\"section-title\">🧗 Technical Difficulty: ${issue.technicalDifficulty.level}</mj-text><mj-text font-size=\"14px\" line-height=\"1.6\">`\n\ttechnicalDifficulty += createBulletedList(issue.technicalDifficulty.reasons);\n\ttechnicalDifficulty += '</mj-text>';\n\n\tlet issuelink = `<mj-text mj-class=\"section-title\"><p>👉 Go to the Issue <a href=\"${issue.url}\">(Link)</a></p></mj-text>`;\n\tlet deepwikiLink = `<mj-text mj-class=\"section-title\"><p>🌀 Check the code-level explanation on Deepwiki <a href=\"${issue.deepwikiLink}\">(Link)</a></p></mj-text>`;\n\n\tissues.push(\n\t\tissueInfo + analogy + description +\n\t\trootCause + resolutionApproach + suitability +\n\t\ttechnicalDifficulty + issuelink + deepwikiLink\n\t);\n}\n\nreturn {\n\tissueHTML: `\n\t\t\t\t<mjml>\n\t\t\t\t\t<mj-head>\n\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t.notion-code {\n\t\t\t\t\t\t\t\tline-height: normal !important;\n\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\tfont-weight: 600;\n\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\tpadding: 0.2em 0.4em !important;\n\t\t\t\t\t\t\t\tmargin-right: 0.2em !important;\n\t\t\t\t\t\t\t\tdisplay: inline-block !important;\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.notion-code-block {\n\t\t\t\t\t\t\t\t\tbackground: rgba(135, 131, 120, 0.15) !important;\n\t\t\t\t\t\t\t\t\tborder-radius: 6px !important;\n\t\t\t\t\t\t\t\t\tpadding: 1em !important;\n\t\t\t\t\t\t\t\t\tmargin: 0.5em 0 !important;\n\t\t\t\t\t\t\t\t\toverflow-x: auto !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.notion-code-block code {\n\t\t\t\t\t\t\t\t\tfont-family: 'Courier New', monospace !important;\n\t\t\t\t\t\t\t\t\tfont-size: 85% !important;\n\t\t\t\t\t\t\t\t\tcolor: rgb(191, 97, 106) !important;\n\t\t\t\t\t\t\t\t\tbackground: transparent !important;\n\t\t\t\t\t\t\t\t\tpadding: 0 !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t<mj-style>\n\t\t\t\t\t\t\t\t.dark .notion-code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t\t.dark .notion-code-block code {\n\t\t\t\t\t\t\t\t\tcolor: rgb(250, 156, 96) !important;\n\t\t\t\t\t\t\t\t}\n\t\t\t\t\t\t\t</mj-style>\n\t\t\t\t\t\t\t\t<mj-attributes>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"issue-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"22px\" />\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-title\" font-family=\"Nanum, Times, sans-serif\" font-size=\"15px\" font-weight=\"bold\"/>\n\t\t\t\t\t\t\t\t\t\t<mj-class name=\"section-content\" font-size=\"14px\" line-height=\"1.6\"/>\n\t\t\t\t\t\t\t\t</mj-attributes>\n\t\t\t\t\t\t</mj-head>\n\t\t\t\t\t\t<mj-body>\n\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-image src=\"https://lh3.googleusercontent.com/d/1Kb9oLEzdcJp0LGtIYFlWWPKqgatJDzlB\" width=\"1000\" height=\"150\"/>\n\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/> \n\t\t\t\t\t\t\t\t<mj-section background-color=\"transparent\" padding=\"0px\">\n\t\t\t\t\t\t\t\t\t<mj-column padding=\"0px\">\n\t\t\t\t\t\t\t\t\t\t<mj-image padding=\"0px\" src=\"https://lh3.googleusercontent.com/d/1rpH-BMWzsI06hl5cT1A7agwt7o0G9zH_\"></mj-image>\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-section background-color=\"#F3E8FF\" padding=\"30px 40px\">\n\t\t\t\t\t\t\t\t\t<mj-column width=\"100%\">\n\t\t\t\t\t\t\t\t\t\t${referencePR}\n\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t<mj-wrapper>\n\t\t\t\t\t\t\t\t\t\t${latestRelease}\n\t\t\t\t\t\t\t\t\t\t${summary}\n\t\t\t\t\t\t\t\t\t\t<mj-section>\n\t\t\t\t\t\t\t\t\t\t\t\t<mj-column>\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t${issues.join(`<mj-divider  border-width=\"1px\" border-color=\"#D3D3D3\"/>`)}\n\t\t\t\t\t\t\t\t\t\t\t\t</mj-column>\n\t\t\t\t\t\t\t\t\t\t</mj-section>\n\t\t\t\t\t\t\t\t</mj-wrapper>\n\t\t\t\t</mj-body>\n\t\t\t\t</mjml>`\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5088,
-        704
+        5424,
+        720
       ],
       "id": "de11b35d-7f55-41f4-a85b-30cac04f6529",
       "name": "convert MJML",
@@ -175,8 +175,8 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        3712,
-        784
+        4048,
+        800
       ],
       "id": "e8f85c79-afb3-4921-a108-00060217b4ce",
       "name": "Deepwiki Langchain agent"
@@ -218,8 +218,8 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        4592,
-        704
+        4928,
+        720
       ],
       "id": "93c69f30-844c-4a0e-8e1b-2a1c2852faad",
       "name": "Title Generator Langchain Agent"
@@ -232,21 +232,21 @@
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
       "position": [
-        3728,
-        640
+        4064,
+        656
       ],
       "id": "3bc31e74-50fd-4b41-8927-a6deb5f688c4",
       "name": "Split Out"
     },
     {
       "parameters": {
-        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"High\", \"Medium\", \"Low\"],\n\t\t\tdescription: \"High | Medium | Low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"array\",\n\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
+        "jsCode": "const TechnicalDifficultySchema = {\n\ttype: \"object\",\n\ttitle: \"technical_difficulty_assessment\",\n\tdescription: \"Schema for evaluating the technical complexity and difficulty level of resolving a GitHub issue\",\n\tproperties: {\n\t\tlevel: {\n\t\t\ttype: \"string\",\n\t\t\tenum: [\"high\", \"medium\", \"low\"],\n\t\t\tdescription: \"high | medium | low\"\n\t\t},\n\t\treasons: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Reasons for the difficulty level\"\n\t\t}\n\t},\n\trequired: [\"level\", \"reasons\"]\n};\n\nconst IssueResponseSchema = {\n\ttype: \"object\",\n\ttitle: \"deepwiki_issue_analysis_response\",\n\tdescription: \"Structured response schema containing comprehensive analysis of GitHub issues including root cause, resolution approach, difficulty assessment, and explanatory content\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code\"\n\t\t},\n\t\tdeepwikiLink: {\n\t\t\ttype: \"string\",\n\t\t\tpattern: \"^https://deepwiki\\\\.com/search/.*\",\n\t\t\terrorMessage: \"Must start with https://deepwiki.com/search/\"\n\t\t},\n\t\trootCause: {\n\t\t\ttype: \"array\",\n\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Root cause of the issue\"\n\t\t},\n\t\tresolutionApproach: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"List of resolution approaches\"\n\t\t},\n\t\ttechnicalDifficulty: {\n\t\t\t...TechnicalDifficultySchema,\n\t\t\tdescription: \"Technical difficulty assessment\"\n\t\t},\n\t\tsummary: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"One-sentence contribution summary\"\n\t\t},\n\t\tkeyword: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"1-5 relevant keywords\"\n\t\t},\n\t\tanalogy: {\n\t\t\ttype: \"array\",\n\t\t\titems: { type: \"string\" },\n\t\t\tdescription: \"Simple analogy for issue and resolution\"\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"deepwikiLink\", \"rootCause\", \"resolutionApproach\", \"technicalDifficulty\", \"summary\", \"keyword\", \"analogy\"]\n};\nreturn IssueResponseSchema;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        3472,
-        784
+        3808,
+        800
       ],
       "id": "ea8e1a37-e31a-410c-8fda-2cc887c62f04",
       "name": "Deepwiki Response Schema",
@@ -261,8 +261,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        3424,
-        992
+        3760,
+        1008
       ],
       "id": "008e4a4e-08f4-4884-b2b2-4bac7d672f0b",
       "name": "Deepwiki Structured Output Parser",
@@ -280,8 +280,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        4368,
-        976
+        4704,
+        992
       ],
       "id": "dd67528b-5bb7-4c62-9ee0-f1278a678163",
       "name": "Title Generator Structured Output Parser",
@@ -295,8 +295,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        4400,
-        704
+        4736,
+        720
       ],
       "id": "7de65c31-96a4-4248-9159-61f2e398c227",
       "name": "Title Generator Schema",
@@ -316,8 +316,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        5712,
-        704
+        6048,
+        720
       ],
       "id": "760f043a-1445-4ebf-a504-cae47b9a850b",
       "name": "AWS SES v2 HTTP Request",
@@ -335,8 +335,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        5520,
-        704
+        5856,
+        720
       ],
       "id": "ea1dc579-fbf1-48bf-bb79-acadc6def8ac",
       "name": "Make SES v2 Request Body"
@@ -357,8 +357,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        3408,
-        1184
+        3744,
+        1200
       ],
       "id": "a43aaf73-0b72-446f-8629-6d358aa95d91",
       "name": "OpenAI Chat Model2",
@@ -385,8 +385,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        3760,
-        1024
+        4096,
+        1040
       ],
       "id": "29c0d234-ebd3-47c5-8242-df81c67be923",
       "name": "OpenAI Chat Model3",
@@ -413,8 +413,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        4368,
-        1168
+        4704,
+        1184
       ],
       "id": "b2eb428d-a957-4d4f-b91f-ecbab3f394b5",
       "name": "OpenAI Chat Model4",
@@ -441,8 +441,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        4672,
-        944
+        5008,
+        960
       ],
       "id": "88552d15-5dbb-4490-a135-dc0399cc2b02",
       "name": "OpenAI Chat Model5",
@@ -466,7 +466,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return {\n      owner: \"vercel\",\n      name: \"next.js\"\n  }"
+        "jsCode": "return {\n      owner: \"apache\",\n      name: \"airflow\"\n  }"
       },
       "id": "21efde81-2999-4639-856c-b180f0055a83",
       "name": "Load Repo Info",
@@ -488,8 +488,8 @@
       "name": "Get Issue From Github",
       "type": "n8n-nodes-base.graphql",
       "position": [
-        1792,
-        720
+        2128,
+        736
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -508,8 +508,8 @@
       "name": "get Top Fit Issues",
       "type": "n8n-nodes-base.code",
       "position": [
-        3024,
-        704
+        3360,
+        720
       ],
       "executeOnce": false,
       "retryOnFail": false,
@@ -526,8 +526,8 @@
       "name": "Sticky Note10",
       "type": "n8n-nodes-base.stickyNote",
       "position": [
-        2480,
-        512
+        2816,
+        528
       ],
       "typeVersion": 1
     },
@@ -560,8 +560,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2928,
-        1488
+        3264,
+        1504
       ],
       "id": "15abef5f-a822-4486-89a1-d327b4c9ec0e",
       "name": "OpenAI Chat Model",
@@ -588,8 +588,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2928,
-        928
+        3264,
+        944
       ],
       "id": "6f75e8b8-ee4b-486e-9834-2b405232e4f3",
       "name": "OpenAI Chat Model1",
@@ -616,8 +616,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2496,
-        1488
+        2832,
+        1504
       ],
       "id": "cd964ef5-ecc0-4fc0-ba6a-53221f358f28",
       "name": "OpenAI Chat Model6",
@@ -644,8 +644,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        2128,
-        1472
+        2464,
+        1488
       ],
       "id": "395073b6-5553-4061-afbc-fc51797507e4",
       "name": "OpenAI Chat Model7",
@@ -663,21 +663,21 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2000,
-        912
+        2336,
+        928
       ],
       "id": "1e915c44-cbc5-4404-b65c-acd9ac8fecdb",
       "name": "Issue Summary Schema"
     },
     {
       "parameters": {
-        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 3,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
+        "jsCode": "const releaseSummaryOutputSchema = {\n\ttitle: \"release_summary_output\",\n\tdescription: \"Summary result of GitHub release\",\n\ttype: \"object\",\n\tproperties: {\n\t\ttranslationLanguageCode: {\n\t\t\ttype: \"string\",\n\t\t\tdescription: \"Language code for translation\"\n\t\t},\n\t\tlatestRelease: {\n\t\t\ttype: \"object\",\n\t\t\tproperties: {\n\t\t\t\tdetails: {\n\t\t\t\t\ttype: \"array\",\n\t\t\t\t\titems: {\n\t\t\t\t\t\ttype: \"object\",\n\t\t\t\t\t\tproperties: {\n\t\t\t\t\t\t\tcategory: {\n\t\t\t\t\t\t\t\ttype: \"string\",\n\t\t\t\t\t\t\t\tdescription: \"Category for the descriptions (e.g., 'breaking change', 'internal change')\"\n\t\t\t\t\t\t\t},\n\t\t\t\t\t\t\tdescriptions: {\n\t\t\t\t\t\t\t\ttype: \"array\",\n\t\t\t\t\t\t\t\titems: { type: \"string\" },\n\t\t\t\t\t\t\t\tmaxItems: 2,\n\t\t\t\t\t\t\t\tdescription: \"Compressed release descriptions (maximum 3 items)\"\n\t\t\t\t\t\t\t}\n\t\t\t\t\t\t},\n\t\t\t\t\t\trequired: [\"category\", \"descriptions\"]\n\t\t\t\t\t},\n\t\t\t\t\tmaxItems: 2,\n\t\t\t\t\tdescription: \"Array of release details (maximum 3 items)\"\n\t\t\t\t}\n\t\t\t},\n\t\t\trequired: [\"details\"]\n\t\t}\n\t},\n\trequired: [\"translationLanguageCode\", \"latestRelease\"]\n};\nreturn releaseSummaryOutputSchema;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2016,
-        624
+        2352,
+        640
       ],
       "id": "fe728300-6258-4452-9fdd-8b47239bf5ad",
       "name": "Release Summary Schema"
@@ -689,8 +689,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2016,
-        768
+        2352,
+        784
       ],
       "id": "2f3239d2-3406-4436-99e9-f5e61d246504",
       "name": "Issue Score Schema"
@@ -702,8 +702,8 @@
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2272,
-        688
+        2608,
+        704
       ],
       "id": "c901473e-36fa-4ee6-96a3-4790fd3ec4b9",
       "name": "Merge1"
@@ -717,8 +717,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2928,
-        1312
+        3264,
+        1328
       ],
       "id": "d39fdea2-8fc7-4a27-9fee-5cf7750a284b",
       "name": "Issue Summary Structured Output Parser",
@@ -735,8 +735,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2496,
-        1328
+        2832,
+        1344
       ],
       "id": "0790acc1-cbb6-49b3-9d54-9f1b0fff7c12",
       "name": "Issue Score Structured Output Parser",
@@ -753,8 +753,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        2144,
-        1312
+        2480,
+        1328
       ],
       "id": "6d41acbb-d835-413b-a2a1-dd7071853b62",
       "name": "Release Summary Structured Output Parser",
@@ -771,8 +771,8 @@
       "type": "n8n-nodes-base.aggregate",
       "typeVersion": 1,
       "position": [
-        2464,
-        704
+        2800,
+        720
       ],
       "id": "49fcd005-8a72-4601-8c4a-1d89996ae500",
       "name": "Aggregate"
@@ -802,13 +802,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = user.replace(/-/g, \"_\");\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
+        "jsCode": "const nodes = $input.first().json.data.repository.pullRequests.nodes;\nconst users = nodes\n\t.filter(node => node.author?.login)\n\t.map(node => node.author.login);\nconst owner = $('Load Repo Info').first().json.owner; \nconst name = $('Load Repo Info').first().json.name;\nconst repoInfo = `${owner}/${name}`;\nconst toAlias = (login) => login ? (s => /^[0-9]/.test(s) ? \"_\" + s : s)(login.replace(/-/g, \"_\")) : \"\";\nconst query = `\n\tquery {\n\t\t${users.map(user => {\n\t\t\tconst alias = toAlias(user);\n\t\t\treturn `\n\t\t\t\t${alias}: search(\n\t\t\t\t\tquery: \"repo:${repoInfo} is:pr is:merged author:${user}\"\n\t\t\t\t\ttype: ISSUE\n\t\t\t\t\tfirst: 1\n\t\t\t\t) {\n\t\t\t\t\tissueCount\n\t\t\t\t}\n\t\t\t`;\n\t\t}).join(\"\")}\n\t}\n`;\n\nreturn {\n\t\"query\" : query\n}"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        432,
-        720
+        672,
+        912
       ],
       "id": "04a99e08-212b-4290-aab2-f920186f8290",
       "name": "Build User Merge Count Query"
@@ -825,8 +825,8 @@
       "name": "Fetch Author Merge Counts",
       "type": "n8n-nodes-base.graphql",
       "position": [
-        656,
-        720
+        944,
+        912
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -839,13 +839,13 @@
     },
     {
       "parameters": {
-        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes;\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[pr.author.login?.replace(/-/g, '_')]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
+        "jsCode": "const prs = $('Fetch Recent Merged PRs').first().json.data.repository.pullRequests.nodes\n\t.filter(pr => pr.author?.login);\nconst issueCounts = $('Fetch Author Merge Counts').first().json.data.data;\nconst toAlias = (login) => login ? (s => /^[0-9]/.test(s) ? \"_\" + s : s)(login.replace(/-/g, \"_\")) : \"\";\nconst merged = prs.map(pr => ({\n\t...pr,\n\tauthor: {\n\t\t...pr.author,\n\t\ttotalMergedCount: issueCounts[toAlias(pr.author.login)]?.issueCount ?? 0 \n\t}\n}))\n\nconst sorted = merged.sort((a, b) => {\n\tconst aHasIssues = a.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tconst bHasIssues = b.closingIssuesReferences.nodes.length > 0 ? 1 : 0;\n\tif (aHasIssues !== bHasIssues) return bHasIssues - aHasIssues;\n\tif (a.author.totalMergedCount !== b.author.totalMergedCount) {\n\t\treturn a.author.totalMergedCount - b.author.totalMergedCount;\n\t}\n\tconst aTotal = a.comments.totalCount + a.reviews.totalCount + \n\t\ta.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\tconst bTotal = b.comments.totalCount + b.reviews.totalCount + \n\t\tb.reviewThreads.nodes.reduce((sum, n) => sum + n.comments.totalCount, 0);\n\treturn bTotal - aTotal;\n});\n\nreturn { sorted };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        864,
-        720
+        1184,
+        912
       ],
       "id": "e8de8256-7f89-443b-9a54-dc5c40cd643c",
       "name": "Sort by Priority"
@@ -861,8 +861,8 @@
       "name": "Fetch Top PR Details",
       "type": "n8n-nodes-base.graphql",
       "position": [
-        1088,
-        720
+        1408,
+        912
       ],
       "typeVersion": 1.1,
       "alwaysOutputData": true,
@@ -910,8 +910,8 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        2672,
-        704
+        3008,
+        720
       ],
       "id": "63a5732f-1946-4c21-bcdf-a626176fc014",
       "name": "Issue Analysis Langchain Agent"
@@ -953,8 +953,8 @@
       "type": "@n8n/n8n-nodes-langchain.code",
       "typeVersion": 1,
       "position": [
-        1472,
-        720
+        1792,
+        912
       ],
       "id": "a09a100e-0d62-455b-8eef-fe3e8a4a50ed",
       "name": "PR Analysis Langchain Agent"
@@ -966,8 +966,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1312,
-        720
+        1632,
+        912
       ],
       "id": "d8ec871d-cc7c-4cf5-8572-4b3310bcc1c5",
       "name": "PR Analysis Schema"
@@ -988,8 +988,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        1568,
-        1008
+        1888,
+        1200
       ],
       "id": "e896d371-b08c-4f9f-b7d4-f4e0497fff3a",
       "name": "OpenAI Chat Model8",
@@ -1016,8 +1016,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.3,
       "position": [
-        1296,
-        1120
+        1616,
+        1312
       ],
       "id": "b62dd26a-7afe-42bd-83db-d49dc0cb316f",
       "name": "OpenAI Chat Model9",
@@ -1037,8 +1037,8 @@
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        1312,
-        960
+        1632,
+        1152
       ],
       "id": "f941f9d1-4cdb-4565-808b-e66ae671b177",
       "name": "PR Analysis Structured Output Parser",
@@ -1046,6 +1046,40 @@
       "alwaysOutputData": false,
       "waitBetweenTries": 5000,
       "executeOnce": false
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c653b8c7-fce6-4cdd-931f-63dbb7284275",
+              "leftValue": "={{ $('Fetch Recent Merged PRs').item.json.data.repository.pullRequests.nodes }}",
+              "rightValue": "",
+              "operator": {
+                "type": "array",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        432,
+        720
+      ],
+      "id": "bd235337-7677-4bd5-9d83-5780f7ea1b55",
+      "name": "If"
     }
   ],
   "pinData": {},
@@ -1405,7 +1439,7 @@
       "main": [
         [
           {
-            "node": "Build User Merge Count Query",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -1537,13 +1571,31 @@
           }
         ]
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Get Issue From Github",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build User Merge Count Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "373d6efa-8394-4d86-bd75-55b50bba4ab6",
+  "versionId": "3a5f7723-69bd-4acf-8461-6f89313468fe",
   "meta": {
     "instanceId": "57a13954f4ed37a4193a2c26d525fd5349259869b863b1ee01d7592b5d74be96",
     "templateCredsSetupCompleted": true

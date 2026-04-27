@@ -46,7 +46,8 @@ const convertMJML = function () {
 		}
 		return items.map(item => `<mj-text mj-class="section-content">• ${item}</mj-text>`).join('<br/>');
 	};
-	const prData = processData($('PR Analysis Langchain Agent').first().json);
+	const prAgent = $('PR Analysis Langchain Agent');
+	const prData = prAgent.isExecuted ? processData(prAgent.first()?.json) : null;
 	
 	let referencePR = '';
 	if (prData) {
@@ -75,20 +76,25 @@ const convertMJML = function () {
 			${createBulletedList(prData.analogy)}
 			${createBulletedList(prData.summary)}
 			<mj-spacer/>
+			${prData.linkedIssue?.url ? `
 			<mj-divider border-width="1px"></mj-divider>
 			<mj-text mj-class="issue-title" align="center">🔗 Related Issue</mj-text>
-			<mj-text mj-class="section-title" align="center"><a href="${prData.linkedIssue?.url}">${prData.linkedIssue?.title}</a></mj-text>
+			<mj-text mj-class="section-title" align="center"><a href="${prData.linkedIssue.url}">${prData.linkedIssue.title}</a></mj-text>
 			<mj-spacer/>
-			${createBulletedList(prData.linkedIssue?.analogy)}
-			${createBulletedList(prData.linkedIssue?.summary)}
+			${createBulletedList(prData.linkedIssue.analogy)}
+			${createBulletedList(prData.linkedIssue.summary)}
 			<mj-text mj-class="section-title" font-weight="bold">Why Good for Contribution</mj-text>
-			${createBulletedList(prData.linkedIssue?.whyGoodForContribution)}
+			${createBulletedList(prData.linkedIssue.whyGoodForContribution)}
 			<mj-spacer/>
+			` : ''}
+			${prData.review?.url ? `
 			<mj-divider border-width="1px"></mj-divider>
 			<mj-text mj-class="issue-title" align="center">💡 Review</mj-text>
-			<mj-text mj-class="section-content">• ${prData.review?.summary?.[0]} <a href="${prData.review?.url}" style="font-weight: bold;">(Link)</a></mj-text>
+			<mj-text mj-class="section-content">• ${prData.review.summary?.[0]} <a href="${prData.review.url}" style="font-weight: bold;">(Link)</a></mj-text>
 			<mj-text mj-class="section-title" font-weight="bold">Key Takeaway</mj-text>
-			${createBulletedList(prData.review?.insights)}
+			${createBulletedList(prData.review.insights)}
+			<mj-spacer/>
+			` : ''}
 			`;
 	}
 
