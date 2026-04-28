@@ -12,7 +12,7 @@ const issueAnalysisLangchainAgent = async () => {
 
 	const repositoryInfo = $('Get Issue From Github').item.json.data.repository;
 	const issues = repositoryInfo.issues.nodes;
-	const release = repositoryInfo.releases.nodes[0];
+	const release = repositoryInfo.releases.nodes[0] || null;
 
 	const { owner, name } = $('Load Repo Info').first().json;
 
@@ -55,10 +55,12 @@ const issueAnalysisLangchainAgent = async () => {
 	const encoder = encodingForModel("gpt-4");
 
 	const countTokens = (text) => {
+		if (text === undefined || text === null) return 0;
 		return encoder.encode(JSON.stringify(text)).length;
 	};
 
 	const truncateToTokens = (text, maxTokens) => {
+		if (text === undefined || text === null) return '';
 		const str = typeof text === 'string' ? text : JSON.stringify(text);
 		const tokens = encoder.encode(str);
 		if (tokens.length <= maxTokens) return str;
@@ -182,6 +184,9 @@ const issueAnalysisLangchainAgent = async () => {
 	});
 
 	async function summarizeAndTranslateReleaseNode(state) {
+		if (!state.release) {
+			return { releaseSummary: null };
+		}
 		const truncatedRelease = truncateToTokens(state.release, 16000);
 		const releaseAgent = createAgentWithMiddleware(wrappedReleaseSummarySchema);
 
