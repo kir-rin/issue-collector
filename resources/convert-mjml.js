@@ -99,16 +99,20 @@ const convertMJML = function () {
 	}
 
 	const latestReleaseInfo = processData($('Issue Analysis Langchain Agent').first().json.latestRelease);
-	let latestRelease = `
+	let latestRelease = '';
+
+	if (latestReleaseInfo) {
+		latestRelease = `
 			 <mj-section padding="15px">
 					 <mj-column border="3px solid #52af0f">
 							 <mj-text mj-class="section-title">🚀 Latest Release <a href="${latestReleaseInfo.url}">(${latestReleaseInfo.name})</a></mj-text>
 			`;
-	for (const { category, descriptions } of latestReleaseInfo.details) {
-		latestRelease += `<mj-text mj-class="section-content" font-weight="bold">[${category}]</mj-text>`;
-		latestRelease += createBulletedList(descriptions);
+		for (const { category, descriptions } of latestReleaseInfo.details) {
+			latestRelease += `<mj-text mj-class="section-content" font-weight="bold">[${category}]</mj-text>`;
+			latestRelease += createBulletedList(descriptions);
+		}
+		latestRelease += '</mj-column></mj-section>';
 	}
-	latestRelease += '</mj-column></mj-section>';
 	const processedIssues = $('Merge').all().map(item => processData(item.json));
 	let summary = `
 			 <mj-section padding="15px">
