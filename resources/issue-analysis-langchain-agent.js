@@ -249,7 +249,6 @@ const issueAnalysisLangchainAgent = async () => {
 			2. Issues where bug/error logs and reproduction steps are clearly specified
 			3. Issues where the location of suspicious source code has been identified
 			4. Issues with "good first issue" label (no "blocked" or "wait-for-triage" labels)
-			5. Issues without an existing PR
 
 			[SCORING GUIDE]
 			- 9-10: Excellent opportunity (meets most criteria perfectly)
