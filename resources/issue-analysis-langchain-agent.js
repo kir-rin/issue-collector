@@ -284,7 +284,17 @@ const issueAnalysisLangchainAgent = async () => {
 		const issueMap = new Map(issues.map(i => [i.url, i]));
 
 		const sortedIssues = [...scoredIssues].sort((a, b) => b.score - a.score);
-		const topIssues = sortedIssues.slice(0, Math.min(3, sortedIssues.length)).map(scored => ({
+
+		const uniqueSortedIssues = [];
+		const seenUrls = new Set();
+		for (const issue of sortedIssues) {
+			if (!seenUrls.has(issue.url)) {
+				seenUrls.add(issue.url);
+				uniqueSortedIssues.push(issue);
+			}
+		}
+		
+		const topIssues = uniqueSortedIssues.slice(0, Math.min(3, uniqueSortedIssues.length)).map(scored => ({
 			...issueMap.get(scored.url),
 			...scored
 		}));
