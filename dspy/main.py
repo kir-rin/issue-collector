@@ -17,8 +17,9 @@ def main():
     parser.add_argument("--max-prs", type=int, default=1000, help="Maximum number of PRs to fetch (default: 1000)")
     parser.add_argument("--load-data", help="Load processed data from JSON file instead of collecting")
     parser.add_argument("--model", default="openai/gpt-4o-mini", help="LLM model to use")
-    parser.add_argument("--auto", default="medium", choices=["light", "medium", "heavy"], help="Optimization level (for MIPROv2)")
-    parser.add_argument("--output", "-o", default=None, help="Output file for optimized scorer (auto-generated if not specified)")
+    parser.add_argument("--auto", default="medium", choices=["light", "medium", "heavy"], help="GEPA optimization budget")
+    parser.add_argument("--log-dir", default="dspy/gepa_logs", help="GEPA log directory for checkpointing")
+    parser.add_argument("--output", "-o", default="dspy/optimized_gepa.json", help="Output file for optimized scorer")
     parser.add_argument("--skip-optimize", action="store_true", help="Skip optimization, only collect and process data")
     parser.add_argument("--save-data", help="Save processed data to JSON file")
 
@@ -73,7 +74,7 @@ def main():
         return
 
     print("[Step 3] Optimizing prompt...")
-    optimizer = PromptOptimizer(train, dev, test)
+    optimizer = PromptOptimizer(train, dev, test, log_dir=args.log_dir)
     optimizer.run(model=args.model, auto=args.auto)
     print()
 

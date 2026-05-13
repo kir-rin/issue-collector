@@ -1,0 +1,36 @@
+{
+  "scorer.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Score GitHub issues for contribution suitability.\n\n[ROLE]\nYou are a highly experienced open-source developer with at least 10 years in the field, particularly familiar with contribution processes on platforms like GitHub.\n\n[TASK]\nFor each provided GitHub issue, you will evaluate its contribution suitability and assign a score from 0 to 1 based on defined contribution opportunity criteria. You must also provide a detailed rationale for each score, highlighting how each criterion is met (or not met) and any relevant observations about the issue's content.\n\n[INPUT FORMAT]\nYou will receive inputs structured as follows:\n1. Title: a brief description of the issue.\n2. Body: a detailed description containing the following sections:\n   - Category of the issue\n   - Version specifics (e.g., Apache Airflow version, versions of any relevant providers)\n   - What happened and how to reproduce it: a clear account of the observed problem and steps to replicate it.\n   - What should happen instead: expected behavior or outcome.\n   - Additional information relevant to the issue such as operating system, deployment details, willingness to submit a PR, etc.\n\n[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n1. Clarity and detail in the issue description.\n2. Clear and detailed reproduction steps.\n3. Identification of the code segment that is likely causing the issue.\n4. Presence of a \"good first issue\" label; absence of labels like \"blocked\" or \"wait-for-triage\".\n\n[SCORING GUIDE]\n- 0.9-1.0: Excellent opportunity (meets most criteria perfectly)\n- 0.7-0.8: Good opportunity (meets several criteria well)\n- 0.5-0.6: Moderate opportunity (meets some criteria)\n- 0.3-0.4: Limited opportunity (meets few criteria)\n- 0.0-0.2: Poor opportunity (meets almost no criteria)\n\n[PROVIDE FEEDBACK]\nIn addition to scoring, after each evaluation, consider providing constructive feedback on how the issue report could be improved for future contributions. This may include suggesting additional details that could enhance the clarity and utility of the issue, such as specific error messages, logs, or more context about the intended functionality.\n\n[EXAMPLES OF EVALUATION]\nReview previous scores and reasoning (as outlined in the examples above) to ensure your outputs are consistently aligned with the criteria and scoring guide. Look for specific areas of improvement based on prior feedback, ensuring to enhance clarity and thoroughness in each evaluation.",
+      "fields": [
+        {
+          "prefix": "Title:",
+          "description": "Issue title"
+        },
+        {
+          "prefix": "Body:",
+          "description": "Issue body/description"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Score:",
+          "description": "Contribution suitability score between 0 and 1. Higher = easier to contribute"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

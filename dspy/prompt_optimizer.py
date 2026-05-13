@@ -1,12 +1,45 @@
 import dspy
+import json
 from typing import Any
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
 
 
 class IssueScoreSignature(dspy.Signature):
-    """Score GitHub issues based on their suitability for contribution. Higher scores (close to 1) indicate easier, more suitable issues for contributors."""
+    """Score GitHub issues for contribution suitability.
+
+[ROLE]
+You are a 10-year experienced developer with extensive open-source contribution experience.
+
+[TASK]
+For each issue, assign a score from 0 to 1 based on contribution opportunity criteria.
+Provide clear reasoning for each score.
+
+[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]
+1. Issues with detailed and well-written content
+2. Issues where bug/error logs and reproduction steps are clearly specified
+3. Issues where the location of suspicious source code has been identified
+4. Issues with "good first issue" label (no "blocked" or "wait-for-triage" labels)
+
+[SCORING GUIDE]
+- 0.9-1.0: Excellent opportunity (meets most criteria perfectly)
+- 0.7-0.8: Good opportunity (meets several criteria well)
+- 0.5-0.6: Moderate opportunity (meets some criteria)
+- 0.3-0.4: Limited opportunity (meets few criteria)
+- 0.0-0.2: Poor opportunity (meets almost no criteria)
+
+[OUTPUT RULES]
+You must format your output as a JSON value that adheres to a given "JSON Schema" instance.
+Do not include markdown code blocks in the output.
+Keep keys in English.
+
+[CONSTRAINTS]
+- Keep the original section structure: [ROLE], [TASK], [CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES], [SCORING GUIDE], [OUTPUT RULES], [CONSTRAINTS]
+- Do not add sections about providing feedback to issue authors
+- Do not add [PROVIDE FEEDBACK] or similar sections
+"""
     title: str = dspy.InputField(desc="Issue title")
     body: str = dspy.InputField(desc="Issue body/description")
     score: float = dspy.OutputField(desc="Contribution suitability score between 0 and 1. Higher = easier to contribute")
@@ -21,13 +54,25 @@ class IssueScorer(dspy.Module):
         return self.scorer(title=title, body=body)
 
 
-def score_metric(example: dspy.Example, prediction: dspy.Prediction, trace=None) -> float:
+def score_metric(
+    example: dspy.Example,
+    prediction: dspy.Prediction,
+    trace=None,
+    pred_name=None,
+    pred_trace=None,
+) -> float:
     error = abs(example.score - prediction.score)
     return 1 / (1 + error)
 
 
 class PromptOptimizer:
-    def __init__(self, train: list[dict[str, Any]], dev: list[dict[str, Any]], test: list[dict[str, Any]]):
+    def __init__(
+        self,
+        train: list[dict[str, Any]],
+        dev: list[dict[str, Any]],
+        test: list[dict[str, Any]],
+        log_dir: str = "dspy/gepa_logs",
+    ):
         self.train = train
         self.dev = dev
         self.test = test
@@ -35,17 +80,8 @@ class PromptOptimizer:
         self.devset: list[dspy.Example] = []
         self.testset: list[dspy.Example] = []
         self.optimized_scorer: IssueScorer | None = None
-        self._optimizer_name: str | None = None
-
-    def get_optimizer_info(self) -> tuple[str, str]:
-        n_train = len(self.train)
-        
-        if n_train < 50:
-            return "BootstrapFewShot", "optimized_fewshot.json"
-        elif n_train < 100:
-            return "BootstrapFewShotWithRandomSearch", "optimized_random_search.json"
-        else:
-            return "MIPROv2", "optimized_mipro.json"
+        self.log_dir = Path(log_dir)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def to_dspy_examples(self, issues: list[dict[str, Any]]) -> list[dspy.Example]:
         return [
@@ -63,46 +99,23 @@ class PromptOptimizer:
         dspy.configure(lm=lm)
 
     def optimize(self, auto: str = "medium") -> IssueScorer:
-        self._optimizer_name, default_filename = self.get_optimizer_info()
-        print(f"[PromptOptimizer] Using {self._optimizer_name} (train_size={len(self.train)})")
+        print(f"[PromptOptimizer] Using GEPA (train_size={len(self.train)}, val_size={len(self.dev)})")
+        print(f"[PromptOptimizer] Log directory: {self.log_dir}")
         print(f"[PromptOptimizer] Starting optimization...")
         
         scorer = IssueScorer()
         
-        if self._optimizer_name == "BootstrapFewShot":
-            optimizer = dspy.BootstrapFewShot(
-                metric=score_metric,
-                max_bootstrapped_demos=4,
-                max_labeled_demos=16,
-            )
-            self.optimized_scorer = optimizer.compile(
-                scorer,
-                trainset=self.trainset,
-            )
-        elif self._optimizer_name == "BootstrapFewShotWithRandomSearch":
-            optimizer = dspy.BootstrapFewShotWithRandomSearch(
-                metric=score_metric,
-                max_bootstrapped_demos=4,
-                max_labeled_demos=16,
-                num_candidate_programs=10,
-                num_threads=1,
-            )
-            self.optimized_scorer = optimizer.compile(
-                scorer,
-                trainset=self.trainset,
-                valset=self.devset,
-            )
-        else:  # MIPROv2
-            optimizer = dspy.MIPROv2(
-                metric=score_metric,
-                auto=auto,
-                num_threads=4,
-            )
-            self.optimized_scorer = optimizer.compile(
-                scorer,
-                trainset=self.trainset,
-                valset=self.devset,
-            )
+        optimizer = dspy.GEPA(
+            metric=score_metric,
+            auto=auto,
+            track_stats=True,
+            reflection_lm=dspy.LM("openai/gpt-4o-mini", temperature=1.0, max_tokens=16000),
+        )
+        self.optimized_scorer = optimizer.compile(
+            scorer,
+            trainset=self.trainset,
+            valset=self.devset,
+        )
         
         print(f"[PromptOptimizer] Optimization complete")
         return self.optimized_scorer
@@ -133,15 +146,65 @@ class PromptOptimizer:
             "num_samples": len(self.testset),
         }
 
-    def save(self, path: str | None = None) -> str:
+    def save(self, path: str = "optimized_gepa.json") -> str:
         if not self.optimized_scorer:
             raise ValueError("No optimized scorer. Run optimize() first.")
         
-        if path is None:
-            _, path = self.get_optimizer_info()
-        
         print(f"[PromptOptimizer] Saving optimized scorer to {path}")
         self.optimized_scorer.save(path)
+        
+        history_path = path.replace('.json', '_history.json')
+        if hasattr(self.optimized_scorer, 'detailed_results'):
+            dr = self.optimized_scorer.detailed_results
+            
+            sorted_indices = sorted(
+                range(len(dr.candidates)),
+                key=lambda i: dr.val_aggregate_scores[i],
+                reverse=True
+            )[:5]
+            
+            top_candidates = []
+            for idx in sorted_indices:
+                candidate = dr.candidates[idx]
+                instruction = None
+                for name, pred in candidate.named_predictors():
+                    instruction = pred.signature.instructions
+                    break
+                top_candidates.append({
+                    "candidate_idx": idx,
+                    "val_aggregate_score": dr.val_aggregate_scores[idx],
+                    "instruction": instruction,
+                    "discovery_eval_count": dr.discovery_eval_counts[idx] if idx < len(dr.discovery_eval_counts) else None,
+                    "parent_indices": dr.parents[idx] if idx < len(dr.parents) else None,
+                })
+            
+            history = {
+                "optimization_summary": {
+                    "best_idx": dr.best_idx,
+                    "best_score": dr.val_aggregate_scores[dr.best_idx] if dr.val_aggregate_scores else None,
+                    "total_metric_calls": dr.total_metric_calls,
+                    "num_full_val_evals": dr.num_full_val_evals,
+                    "num_candidates": len(dr.candidates),
+                    "seed": dr.seed,
+                },
+                "top_5_candidates": top_candidates,
+                "all_candidate_scores": [
+                    {
+                        "candidate_idx": i,
+                        "val_aggregate_score": dr.val_aggregate_scores[i],
+                    }
+                    for i in range(len(dr.candidates))
+                ],
+                "score_distribution": {
+                    "min": min(dr.val_aggregate_scores) if dr.val_aggregate_scores else None,
+                    "max": max(dr.val_aggregate_scores) if dr.val_aggregate_scores else None,
+                    "mean": sum(dr.val_aggregate_scores) / len(dr.val_aggregate_scores) if dr.val_aggregate_scores else None,
+                },
+            }
+            with open(history_path, "w", encoding="utf-8") as f:
+                json.dump(history, f, indent=2, ensure_ascii=False)
+            print(f"[PromptOptimizer] Optimization history saved to {history_path}")
+        
         print(f"[PromptOptimizer] Save complete")
         return path
 
