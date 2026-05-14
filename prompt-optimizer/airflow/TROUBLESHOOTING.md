@@ -329,6 +329,151 @@ Scheduler Container
 
 `execution_api_server_url`이 틀리면 4번 단계에서 실패 → SIGKILL
 
+---
+
+## Airflow 3.x: Secret Key 설정 가이드
+
+### 네 가지 Secret/JWT Key
+
+Airflow 3.x에서는 **네 가지 key** 설정이 필요하며, 모든 컨테이너에서 동일해야 합니다:
+
+| 설정 | 섹션 | 용도 | 미설정 시 |
+|------|------|------|-----------|
+| `api.secret_key` | `[api]` | UI 세션, CSRF 토큰, 데이터 암호화 | 각 컨테이너가 **랜덤 생성** |
+| `api.jwt_secret` | `[api]` | REST API JWT 토큰 서명 | 각 컨테이너가 **랜덤 생성** |
+| `api_auth.secret_key` | `[api_auth]` | Execution API 인증 (키 교환용) | 각 컨테이너가 **랜덤 생성** |
+| `api_auth.jwt_secret` | `[api_auth]` | Execution API JWT 토큰 서명 | 각 컨테이너가 **랜덤 생성** |
+
+---
+
+### api 섹션 vs api_auth 섹션
+
+| 섹션 | 대상 API | 사용자 |
+|------|----------|--------|
+| `api.*` | Core API (`/api/v2/*`) | 사용자/UI/CLI |
+| `api_auth.*` | Execution API (`/execution/*`) | Task Runner (내부) |
+
+- `api.*`: DAG 조회, 트리거 등 **사용자 요청** 인증
+- `api_auth.*`: 태스크 실행, 상태 보고 등 **내부 통신** 인증
+
+---
+
+### JWT 토큰 검증 흐름
+
+```
+Task Runner                           Execution API Server
+    │                                        │
+    │  1. JWT 토큰 생성 (jwt_secret로 서명)    │
+    │────────────────────────────────────────>│
+    │                                        │
+    │                              2. 서명 검증 (jwt_secret)
+    │                              3. audience 클레임 검증
+    │                                        │
+    │  4. 응답 (검증 성공/실패)                │
+    │<────────────────────────────────────────│
+```
+
+| 실패 지점 | 에러 메시지 | 원인 |
+|-----------|-------------|------|
+| 2. 서명 검증 | `Signature verification failed` | `api_auth.jwt_secret` 불일치 |
+| 3. audience 검증 | `Audience doesn't match` | `api.jwt_secret` vs `api_auth.jwt_secret` 불일치 |
+
+---
+
+### 증상 1: Execution API JWT 인증 실패 (Signature)
+
+**증상:**
+```
+airflow.sdk.api.client.ServerResponseError: Invalid auth token: Signature verification failed
+```
+
+**원인:** `api_auth.secret_key` 또는 `api_auth.jwt_secret` 불일치
+
+---
+
+### 증상 2: Execution API JWT 인증 실패 (Audience)
+
+**증상:**
+```
+jwt.exceptions.InvalidAudienceError: Audience doesn't match
+```
+
+**원인:** `api.jwt_secret` 또는 `api_auth.jwt_secret` 불일치
+
+JWT 토큰의 audience 클레임이 서로 다른 키로 서명되어 검증 실패
+
+---
+
+### 증상 3: UI 세션/CSRF 키 불일치 경고
+
+**증상:**
+```
+!!!! Please make sure that all your Airflow components have the same 'secret_key' 
+configured in '[api]' section
+```
+
+**원인:** `api.secret_key` 불일치
+
+---
+
+### 진단
+
+```bash
+# 모든 키 비교
+docker exec airflow-airflow-webserver-1 airflow config get-value api secret_key
+docker exec airflow-airflow-scheduler-1 airflow config get-value api secret_key
+
+docker exec airflow-airflow-webserver-1 airflow config get-value api jwt_secret
+docker exec airflow-airflow-scheduler-1 airflow config get-value api jwt_secret
+
+docker exec airflow-airflow-webserver-1 airflow config get-value api_auth secret_key
+docker exec airflow-airflow-scheduler-1 airflow config get-value api_auth secret_key
+
+docker exec airflow-airflow-webserver-1 airflow config get-value api_auth jwt_secret
+docker exec airflow-airflow-scheduler-1 airflow config get-value api_auth jwt_secret
+```
+
+모든 컨테이너에서 동일한 값이 나와야 합니다.
+
+---
+
+### 해결
+
+**방법 1: 볼륨 삭제 후 재시작 (개발 환경)**
+```bash
+docker compose down -v  # 볼륨까지 삭제
+docker compose up -d
+```
+
+**방법 2: 운영 환경 - 네 가지 키 모두 명시 설정**
+```yaml
+# docker-compose.yaml
+environment:
+  AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY}
+  AIRFLOW__API__JWT_SECRET: ${AIRFLOW_API_JWT_SECRET}
+  AIRFLOW__API_AUTH__SECRET_KEY: ${AIRFLOW_API_AUTH_SECRET_KEY}
+  AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_API_AUTH_JWT_SECRET}
+```
+```bash
+# .env
+AIRFLOW_API_SECRET_KEY=your_api_secret_key_minimum_32_chars
+AIRFLOW_API_JWT_SECRET=your_api_jwt_secret_minimum_32_chars
+AIRFLOW_API_AUTH_SECRET_KEY=your_auth_secret_key_minimum_64_chars
+AIRFLOW_API_AUTH_JWT_SECRET=your_auth_jwt_secret_minimum_64_chars
+```
+
+**노트:**
+- 모든 키는 32바이트 이상 권장 (64바이트 권장: SHA512용)
+- 최초 배포부터 설정하면 재시작해도 동일한 키 사용
+- PostgreSQL 데이터는 `postgres-db-volume`에 영속화됨
+- **실행 흐름**: Task Runner → Execution API 인증(JWT) → 인증 실패 → SIGKILL → `up_for_retry`
+
+**참고:** 
+- [Airflow API Configuration](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#api)
+- [Airflow API Auth Configuration](https://airflow.apache.org/docs/apache-airflow/stable/configurations-ref.html#api-auth)
+
+---
+
 **참고:** 
 - [Airflow 3.x Architecture](https://airflow.apache.org/docs/apache-airflow/3.0.0/core-concepts/overview.html)
 - [Upgrading to Airflow 3](https://airflow.apache.org/docs/apache-airflow/3.0.0/installation/upgrading_to_airflow3.html)
