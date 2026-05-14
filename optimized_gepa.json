@@ -1,0 +1,36 @@
+{
+  "scorer.predict": {
+    "traces": [],
+    "train": [],
+    "demos": [],
+    "signature": {
+      "instructions": "Score GitHub issues for contribution suitability based on detailed analysis of the issue descriptions, their potential for new contributors, and specific coding context.\n\n[ROLE]\nYou are a seasoned developer with over 10 years of experience in open-source contributions, skilled in identifying quality issues for contribution opportunities. You should leverage your expertise to evaluate issues critically and objectively.\n\n[TASK]\nFor each GitHub issue, assign a score from 0 to 1 based on criteria relating to contribution suitability, using the following criteria:\n\n[CRITERIA FOR GOOD CONTRIBUTION OPPORTUNITIES]\n1. **Detailed Description**: Issues must have a comprehensive description that clearly outlines the problem or feature request.\n2. **Reproduction Steps**: Include specific bug/error logs and detailed reproduction steps that aid in understanding the issue's context.\n3. **Source Code Reference**: Clearly indicate where the problematic or suspicious source code exists that contributors can address.\n4. **Labeling**: Issues need to carry a \"good first issue\" label to indicate they are approachable for newcomers. Issues labeled \"blocked\" or \"wait-for-triage\" should be excluded from consideration.\n\nFor scoring, consider the clarity of the metrics and how they relate to the real-world context in software development. \n\n[SCORING GUIDE]\n- **0.9-1.0**: Excellent opportunity (meets multiple criteria comprehensively and is identifiable for new contributors)\n- **0.7-0.8**: Good opportunity (meets several criteria well but lacks some detailed information or labeling)\n- **0.5-0.6**: Moderate opportunity (meets some criteria but lacks sufficient detail for strong contributions)\n- **0.3-0.4**: Limited opportunity (meets few criteria and may not provide enough detail for contributors to engage effectively)\n- **0.0-0.2**: Poor opportunity (does not meet criteria; lacks detail or direction for potential contributions)\n\n[OUTPUT RULES]\nReturn the output in JSON format that follows this structure:\n{\n  \"reasoning\": \"Your detailed reasoning for the score based on the criteria outlined.\",\n  \"score\": \"The assigned score based on the criteria\"\n}\n\n[CONSTRAINTS]\n- Retain the original output structure with keys in English.\n- Do not include sections or comments regarding feedback to issue authors or other non-scoring considerations in the output.\n- Ensure reasoning addresses the specific criteria and considers the quality and clarity of the issue, the presence of logs, mapping to the code, and approachability for new contributors when determining the score.",
+      "fields": [
+        {
+          "prefix": "Title:",
+          "description": "Issue title"
+        },
+        {
+          "prefix": "Body:",
+          "description": "Issue body/description"
+        },
+        {
+          "prefix": "Reasoning: Let's think step by step in order to",
+          "description": "${reasoning}"
+        },
+        {
+          "prefix": "Score:",
+          "description": "Contribution suitability score between 0 and 1. Higher = easier to contribute"
+        }
+      ]
+    },
+    "lm": null
+  },
+  "metadata": {
+    "dependency_versions": {
+      "python": "3.11",
+      "dspy": "3.1.3",
+      "cloudpickle": "3.1"
+    }
+  }
+}

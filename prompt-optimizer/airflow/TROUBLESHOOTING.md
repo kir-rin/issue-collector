@@ -1,0 +1,213 @@
+# Troubleshooting
+
+## GID=0 Required Error
+
+**증상:**
+```
+WARNING! You should run the image with GID (Group ID) set to 0
+```
+
+**발견:** `docker logs airflow-airflow-scheduler-1`
+
+**원인:** Airflow Docker 이미지는 OpenShift 호환성을 위해 GID=0(root 그룹)을 요구합니다. 모든 쓰기 권한 디렉토리가 GID=0으로 설정되어 있습니다.
+
+**해결:**
+```bash
+# .env
+AIRFLOW_GID=0
+```
+
+**참고:** [Airflow Entrypoint 문서](https://airflow.apache.org/docs/docker-stack/entrypoint.html#allowing-arbitrary-user-to-run-the-container)
+
+**노트**
+- Airflow는 OpenShift 환경과 호환되도록 만들어져 있음
+    - OpenShift는 쿠버네티스 기반 '엔터프라이즈 컨테이너 오케스트레이션' 플랫폼
+    - 그래서 보안을 위해 사용자가 랜덤 UID로 실행됨
+    - 하지만 그 사용자는 항상 GID가 0이여야 함 (그것만 허용하는 구조)
+---
+
+## Plugin Import Error
+
+**증상:**
+```
+ImportError: attempted relative import with no known parent package
+```
+
+**발견:** `docker logs airflow-airflow-init-1`
+
+**원인:** Airflow plugins는 패키지 구조와 다르게 로드되어 relative import가 작동하지 않습니다.
+
+**해결:** AirflowPlugin 클래스를 사용한 단일 파일로 통합
+
+---
+
+## Database: SQLite Instead of PostgreSQL
+
+**증상:**
+```
+DB: sqlite:////opt/airflow/airflow.db
+```
+
+**발견:** `docker logs airflow-airflow-init-1 | grep -E "(db|DB)"`
+
+**원인:** `airflow-init` 환경변수가 `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN`을 상속받지 않아 기본값인 SQLite 사용
+
+**해결:**
+```yaml
+airflow-init:
+  environment:
+    <<: *airflow-common-env  # 부모 환경변수 상속
+```
+
+---
+
+## `db init` Deprecated
+
+**증상:**
+```
+DeprecationWarning: `db init` is deprecated. Use `db migrate` instead
+```
+
+**발견:** `docker logs airflow-airflow-init-1`
+
+**원인:** Airflow 2.7+부터 관심사 분리를 위해 `db init`이 `db migrate`와 `connections create-default-connections`으로 분리됨
+
+**해결:**
+```yaml
+command:
+  - airflow db migrate
+  - airflow connections create-default-connections
+```
+
+---
+
+## Airflow 3.x: `webserver` Command Removed
+
+**증상:**
+```
+airflow command error: argument GROUP_OR_COMMAND: Command `airflow webserver` has been removed.
+Please use `airflow api-server`
+```
+
+**발견:** `docker logs airflow-airflow-webserver-1`
+
+**원인:** Airflow 3.0부터 `webserver` 명령어가 `api-server`로 변경됨
+
+**해결:**
+```yaml
+# docker-compose.yaml
+airflow-webserver:
+  command: api-server  # webserver → api-server
+```
+
+---
+
+## Airflow 3.x: Operator Import Deprecated
+
+**증상:**
+```
+The `airflow.operators.python.PythonOperator` attribute is deprecated.
+The `airflow.operators.email.EmailOperator` attribute is deprecated.
+```
+
+**발견:** `docker-compose exec airflow-scheduler python /opt/airflow/dags/your_dag.py`
+
+**원인:** Airflow 3.0부터 operator들이 provider 패키지로 이동
+
+**해결:**
+```python
+# Before
+from airflow.operators.python import PythonOperator
+from airflow.operators.email import EmailOperator
+
+# After
+from airflow.providers.standard.operators.python import PythonOperator
+from airflow.providers.smtp.operators.smtp import EmailOperator
+```
+
+---
+
+## Airflow 3.x: dag-processor Required
+
+**증상:**
+```
+No data found  # DAG가 DB에 등록되지 않음
+```
+
+**발견:** `docker-compose exec airflow-scheduler airflow dags list`
+
+**원인:** Airflow 3.0부터 standalone DAG processor가 필수. scheduler만으로는 DAG를 처리하지 않음
+
+**해결:**
+```yaml
+# docker-compose.yaml에 추가
+airflow-dag-processor:
+  <<: *airflow-common
+  command: dag-processor
+  restart: always
+  depends_on:
+    airflow-init:
+      condition: service_completed_successfully
+```
+
+---
+
+## Airflow 3.x: 401 Unauthorized (SimpleAuthManager)
+
+**증상:**
+```
+401 Unauthorized
+Invalid credentials
+```
+
+**발견:** 
+- 웹 UI 로그인 시도
+- `docker logs airflow-airflow-init-1 | grep -E "(admin|user)"`
+- `docker compose exec airflow-webserver airflow users list`
+
+**원인:** 
+Airflow 3.x 기본 인증 매니저는 `SimpleAuthManager`입니다. 
+- `simple_auth_manager_users` 설정이 비어있으면 사용자가 정의되지 않음
+- **Breeze**(Airflow 개발환경)에서만 admin 사용자가 자동 생성됨
+- 일반 Docker 배포에서는 별도 설정 필요
+
+**해결:**
+```yaml
+# docker-compose.yaml (개발 환경용 - 인증 없이 모두 admin)
+environment:
+  AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "True"
+```
+
+또는 사용자 정의 방식:
+```yaml
+environment:
+  AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: "admin:admin"
+```
+(비밀번호는 webserver 로그에서 확인)
+
+**참고:** 
+- [Simple Auth Manager 문서](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/auth-manager/simple/index.html)
+
+---
+
+## Airflow 3.x: `airflow users create` AttributeError
+
+**증상:**
+```
+AttributeError: 'AirflowSecurityManagerV2' object has no attribute 'find_role'
+```
+(`airflow users create` CLI 실행 시)
+
+**발견:** 
+- `docker compose exec airflow-webserver airflow users create ...`
+- `docker compose exec airflow-webserver airflow config get-value core auth_manager`
+- 결과: `airflow.api_fastapi.auth.managers.simple.simple_auth_manager.SimpleAuthManager`
+
+**원인:** 
+`airflow users create`는 FabAuthManager용 CLI 명령어입니다. 현재 auth_manager가 SimpleAuthManager인 경우, DB 기반 사용자 관리를 하지 않아 `find_role` 메서드가 없습니다.
+
+**해결:**
+SimpleAuthManager 설정을 사용하세요 (위 "401 Unauthorized" 항목 참조)
+
+**참고:** 
+- [Simple Auth Manager 문서](https://airflow.apache.org/docs/apache-airflow/stable/core-concepts/auth-manager/simple/index.html)

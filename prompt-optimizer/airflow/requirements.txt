@@ -1,0 +1,4 @@
+dspy-ai>=2.6.0
+requests
+python-dotenv
+boto3
