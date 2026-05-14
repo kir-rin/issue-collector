@@ -8,6 +8,10 @@ x-airflow-common:
   environment:
     &airflow-common-env
     AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "True"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: "http://airflow-webserver:8080/execution/"
+    AIRFLOW__API_AUTH__SECRET_KEY: ${AIRFLOW_API_AUTH_SECRET_KEY:-test_secret_key_for_local_dev_minimum_64_chars_padding_xxxxxxxxxxxx}
+    AIRFLOW__LOGGING__TASK_LOG_READER: "task"
+    AIRFLOW__LOGGING__LOG_SERVER_HOST: "airflow-scheduler"
     AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
     AIRFLOW__SMTP__SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
     AIRFLOW__SMTP__SMTP_PORT: ${SMTP_PORT:-587}
