@@ -6,7 +6,7 @@ const makeSESV2RequestBody = () => {
 		Destination: { ToAddresses: ["___TO_EMAIL___"] },
 		Content: {
 			Simple: {
-				Subject: { Data: `[Issue Report] ${repoInfo} - ${title}`, Charset: "UTF-8" },
+				Subject: { Data: `[${repoInfo}] ${title}`, Charset: "UTF-8" },
 				Body: {
 					Html: { 
 						Data: $input.first().json.htmlOutput.html,
