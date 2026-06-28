@@ -331,6 +331,62 @@ Scheduler Container
 
 ---
 
+## LangChain Agent Structured Output Reparse Error
+
+**증상:**
+```
+ERROR: Command failed: ./scripts/entrypoint.sh
+NodeApiError: Unexpected non-whitespace character after JSON at position ...
+NodeApiError: No number after minus sign in JSON at position 1
+```
+
+**발견:** CloudWatch Logs Insights
+```sql
+SOURCE "/aws/lambda/issuecollector-lambda-email-dispatch" START=-48h END=0s
+| fields @timestamp, @logStream, @message
+| filter @message like /ERROR/ or @message like /Error/ or @message like /Exception/ or @message like /Traceback/ or @message like /Task timed out/ or @message like /Runtime exited/ or @message like /Invoke Error/ or @message like /failed/ or @message like /Failed/
+| sort @timestamp desc
+| limit 200
+```
+
+**원인:** n8n LangChain agent 코드가 마지막 AI 메시지의 내용을 `outputParser.parse(aiMessage)`로 JSON 파싱합니다. `aiMessage`가 순수 JSON 문자열이 아니거나 JSON 뒤에 추가 텍스트가 붙으면 parser가 실패합니다. 이때 기존 에러에는 실제로 어떤 AI 메시지를 받았는지 남지 않아 CloudWatch만으로 원인 메시지를 확인하기 어려웠습니다.
+
+**해결:**
+```js
+const getLastAiMessageContent = (result) => {
+	const content = result.messages.findLast(m => m.type === "ai")?.content;
+	if (typeof content === "string") {
+		return content;
+	}
+	if (content == null) {
+		return "";
+	}
+	return JSON.stringify(content);
+};
+
+const result = await agent.invoke({ messages: [{ role: "user", content: userPrompt }] });
+const aiMessage = getLastAiMessageContent(result);
+
+try {
+	return [await outputParser.parse(aiMessage)];
+} catch (error) {
+	error.message = [
+		"Failed to parse last AI message as structured output",
+		`Original error: ${error.message}`,
+		`Last AI message: ${aiMessage}`,
+	].join("\n");
+	throw error;
+}
+```
+
+실제 구현에서는 이 parse 구간을 `traceable(...)`로 감싸 LangSmith에 `aiMessage` 입력과 re-raised error가 함께 남도록 합니다.
+
+Deepwiki 프롬프트의 `technicalDifficulty.level` 예시도 스키마 enum과 동일하게 `high | medium | low` 소문자로 맞춥니다.
+
+**참고:** [LangChain structured output 문서](https://docs.langchain.com/oss/javascript/langchain/structured-output)
+
+---
+
 ## Airflow 3.x: Secret Key 설정 가이드
 
 ### 네 가지 Secret/JWT Key

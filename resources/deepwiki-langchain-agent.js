@@ -64,7 +64,7 @@ const deepwikiLangchainAgent = async () => {
 		- All content must be in "___TRANSLATION_LANGUAGE___"
 		- translationLanguageCode should be "___TRANSLATION_LANGUAGE___"
 		- deepwikiLink must start with https://deepwiki.com/
-		- technicalDifficulty.level must be one of: High, Medium, Low
+		- technicalDifficulty.level must be one of: high, medium, low
 		- keyword should contain 1-5 relevant keywords
 
 		[EXAMPLE OUTPUT]
@@ -78,7 +78,7 @@ const deepwikiLangchainAgent = async () => {
 					"Implement event listener removal logic"
 				],
 				"technicalDifficulty": {
-					"level": "Medium",
+					"level": "medium",
 					"reasons": [
 						"Requires understanding of React lifecycle",
 						"Need memory profiling experience"
@@ -229,12 +229,41 @@ const deepwikiLangchainAgent = async () => {
 	});
 	const outputParser = await this.getInputConnectionData('ai_outputParser', 0);
 
+	const getLastAiMessageContent = (result) => {
+		const content = result.messages.findLast(m => m.type === "ai")?.content;
+		if (typeof content === "string") {
+			return content;
+		}
+		if (content == null) {
+			return "";
+		}
+		return JSON.stringify(content);
+	};
+
+	const parseAiMessageWithTrace = traceable(
+		async ({ aiMessage }) => {
+			try {
+				return await outputParser.parse(aiMessage);
+			} catch (error) {
+				const originalMessage = error instanceof Error ? error.message : String(error);
+				const parseError = error instanceof Error ? error : new Error(originalMessage);
+				parseError.message = [
+					"Failed to parse last AI message as structured output",
+					`Original error: ${originalMessage}`,
+					`Last AI message: ${aiMessage}`,
+				].join("\n");
+				throw parseError;
+			}
+		},
+		{ name: "Parse Last AI Message - Deepwiki" },
+	);
+
 	async function reasonNode({ deepwikiResponse, url }) {
 		const userPrompt = buildUserPrompt(deepwikiResponse);
 		const reasonResult = await agent.invoke({ messages: [{ role: "user", content: userPrompt }] });
-		const aiMessage = reasonResult.messages.findLast(m => m.type === "ai")?.content;
-		const parsedMessage = await outputParser.parse(aiMessage);
-		parsedMessage.output.url = url 
+		const aiMessage = getLastAiMessageContent(reasonResult);
+		const parsedMessage = await parseAiMessageWithTrace({ aiMessage });
+		parsedMessage.output.url = url
 		return { finalAnswers: [parsedMessage.output] };
 	}
 
