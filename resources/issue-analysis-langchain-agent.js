@@ -171,6 +171,39 @@ const issueAnalysisLangchainAgent = async () => {
 		return createAgent(agentConfig);
 	};
 
+	const getLastAiMessageContent = (result) => {
+		const content = result.messages.findLast(m => m.type === "ai")?.content;
+		if (typeof content === "string") {
+			return content;
+		}
+		if (content == null) {
+			return "";
+		}
+		return JSON.stringify(content);
+	};
+
+	const createParseAiMessageWithTrace = (outputParser, name) => traceable(
+		async ({ aiMessage }) => {
+			try {
+				return await outputParser.parse(aiMessage);
+			} catch (error) {
+				const originalMessage = error instanceof Error ? error.message : String(error);
+				const parseError = error instanceof Error ? error : new Error(originalMessage);
+				parseError.message = [
+					"Failed to parse last AI message as structured output",
+					`Original error: ${originalMessage}`,
+					`Last AI message: ${aiMessage}`,
+				].join("\n");
+				throw parseError;
+			}
+		},
+		{ name },
+	);
+
+	const parseReleaseAiMessageWithTrace = createParseAiMessageWithTrace(releaseOutputParser, "Parse Last AI Message - Release Summary");
+	const parseScoreAiMessageWithTrace = createParseAiMessageWithTrace(scoreOutputParser, "Parse Last AI Message - Issue Score");
+	const parseSummaryAiMessageWithTrace = createParseAiMessageWithTrace(summaryOutputParser, "Parse Last AI Message - Issue Summary");
+
 	const IssueAnalysisState = Annotation.Root({
 		release: Annotation({ default: () => null }),
 		issues: Annotation({ default: () => [] }),
@@ -216,8 +249,8 @@ const issueAnalysisLangchainAgent = async () => {
 			messages: [{ role: "user", content: prompt }]
 		});
 
-		const aiMessage = result.messages.findLast(m => m.type === "ai")?.content;
-		const parsed = await releaseOutputParser.parse(aiMessage);
+		const aiMessage = getLastAiMessageContent(result);
+		const parsed = await parseReleaseAiMessageWithTrace({ aiMessage });
 
 		return {
 			releaseSummary: {
@@ -270,8 +303,8 @@ const issueAnalysisLangchainAgent = async () => {
 			{ metadata: { inputTokenCount, batchSize: batch.length } }
 		);
 
-		const aiMessage = result.messages.findLast(m => m.type === "ai")?.content;
-		const parsed = await scoreOutputParser.parse(aiMessage);
+		const aiMessage = getLastAiMessageContent(result);
+		const parsed = await parseScoreAiMessageWithTrace({ aiMessage });
 
 		return {
 			scoredIssues: parsed.output.scoredIssues
@@ -342,8 +375,8 @@ const issueAnalysisLangchainAgent = async () => {
 			messages: [{ role: "user", content: prompt }]
 		});
 
-		const aiMessage = result.messages.findLast(m => m.type === "ai")?.content;
-		const parsed = await summaryOutputParser.parse(aiMessage);
+		const aiMessage = getLastAiMessageContent(result);
+		const parsed = await parseSummaryAiMessageWithTrace({ aiMessage });
 
 		return {
 			finalOutput: {

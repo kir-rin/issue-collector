@@ -17,6 +17,7 @@
   "scripts": {
     "import": "node -r dotenv/config scripts/import-workflow.js",
     "import-prod": "WORKFLOW_PATH='lambda/n8n.json' node -r dotenv/config scripts/import-workflow.js",
-    "reset": "npx n8n user-management:reset"
+    "reset": "npx n8n user-management:reset",
+    "test": "node --test"
   }
 }
