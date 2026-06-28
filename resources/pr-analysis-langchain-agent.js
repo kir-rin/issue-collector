@@ -152,6 +152,35 @@ const prAnalysisLangchainAgent = async () => {
 		]
 	});
 
+	const getLastAiMessageContent = (result) => {
+		const content = result.messages.findLast(m => m.type === "ai")?.content;
+		if (typeof content === "string") {
+			return content;
+		}
+		if (content == null) {
+			return "";
+		}
+		return JSON.stringify(content);
+	};
+
+	const parseAiMessageWithTrace = traceable(
+		async ({ aiMessage }) => {
+			try {
+				return await outputParser.parse(aiMessage);
+			} catch (error) {
+				const originalMessage = error instanceof Error ? error.message : String(error);
+				const parseError = error instanceof Error ? error : new Error(originalMessage);
+				parseError.message = [
+					"Failed to parse last AI message as structured output",
+					`Original error: ${originalMessage}`,
+					`Last AI message: ${aiMessage}`,
+				].join("\n");
+				throw parseError;
+			}
+		},
+		{ name: "Parse Last AI Message - PR Analysis" },
+	);
+
 	const config = $('Get Workflow Run Id').first().json;
 	const result = await traceable(
 		async () => {
@@ -170,16 +199,17 @@ const prAnalysisLangchainAgent = async () => {
 		},
 	)();
 
-	const aiMessage = result.messages.findLast(m => m.type === "ai")?.content;
-	const parsedMessage = await outputParser.parse(aiMessage);
+	const aiMessage = getLastAiMessageContent(result);
+	const parsedMessage = await parseAiMessageWithTrace({ aiMessage });
+	const output = parsedMessage.output;
 	const firstIssue = prData.closingIssuesReferences?.nodes?.[0];
 
 	return [{
-		...parsedMessage.output,
+		...output,
 		title: prData.title,
 		url: prData.url,
-		linkedIssue: parsedMessage.output.linkedIssue ? {
-			...parsedMessage.output.linkedIssue,
+		linkedIssue: output.linkedIssue ? {
+			...output.linkedIssue,
 			title: firstIssue?.title,
 			url: firstIssue?.url
 		} : null
